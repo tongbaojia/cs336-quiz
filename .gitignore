@@ -1,0 +1,4 @@
+_sources/
+_build/
+.DS_Store
+*.log
