@@ -138,8 +138,20 @@
   .rev .why { color: var(--muted); margin-top: 7px; font-size: 13px; }
   .section-title { font-size: 13px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin: 26px 0 10px; font-weight: 700; }
   .empty-good { text-align: center; color: var(--green); padding: 18px; font-weight: 600; }
-  .foot-note { text-align: center; color: var(--muted-2); font-size: 12px; margin-top: 28px; }
+  .foot-note { text-align: center; color: var(--muted-2); font-size: 12px; margin-top: 28px; line-height: 1.7; }
   a { color: var(--accent); }
+  .sub a { color: var(--accent); text-decoration: none; }
+  .sub a:hover { text-decoration: underline; }
+  .foot-note a { color: var(--muted); text-decoration: none; }
+  .foot-note a:hover { color: var(--accent); }
+  .share { display: flex; flex-direction: column; gap: 12px; margin: 2px 0 22px; padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel-2); }
+  .share .lead { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .name-input { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px 12px; border-radius: 10px; font-size: 14px; font-family: inherit; outline: none; }
+  .name-input:focus { border-color: var(--accent); }
+  .name-input::placeholder { color: var(--muted-2); }
+  .share-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .share-btns .btn { flex: 1; min-width: 132px; text-align: center; }
+  .share-status { font-size: 12.5px; color: var(--green); min-height: 16px; transition: opacity .2s ease; }
 </style>
 </head>
 <body>
@@ -147,7 +159,7 @@
   <header class="top">
     <div class="brand">
       <h1>CS336 · <span class="grad">Lecture 1 Self-Test</span></h1>
-      <div class="sub">Overview &amp; tokenization (+ resource-accounting bonus) — 20 questions</div>
+      <div class="sub">20 questions on <a href="https://cs336.stanford.edu/lectures/?trace=lecture_01" target="_blank" rel="noopener">Lecture 1 &mdash; overview &amp; tokenization</a> &middot; Stanford <a href="https://stanford-cs336.github.io/spring2025/" target="_blank" rel="noopener">CS336</a> <span style="color:var(--muted-2)">(+ resource-accounting bonus)</span></div>
     </div>
     <div class="controls">
       <div class="segmented" id="modeToggle">
@@ -168,7 +180,11 @@
 
   <div id="main"></div>
 
-  <div class="foot-note">Progress is saved automatically in this browser. Mode: <span id="modeLabel">Exam</span>.</div>
+  <div class="foot-note">
+    Progress saves automatically in your browser &middot; mode: <span id="modeLabel">Exam</span><br/>
+    Community self-test for Stanford <a href="https://stanford-cs336.github.io/spring2025/" target="_blank" rel="noopener">CS336</a> &middot;
+    <a href="https://cs336.stanford.edu/lectures/?trace=lecture_01" target="_blank" rel="noopener">Lecture 1 trace</a> &middot; not affiliated with the course staff
+  </div>
 </div>
 
 <script>
@@ -322,10 +338,10 @@ function loadState() {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const s = JSON.parse(raw);
-      return { idx: s.idx ?? 0, answers: s.answers ?? {}, mode: s.mode ?? "exam", submitted: !!s.submitted, view: s.view ?? "quiz" };
+      return { idx: s.idx ?? 0, answers: s.answers ?? {}, mode: s.mode ?? "exam", submitted: !!s.submitted, view: s.view ?? "quiz", name: s.name ?? "" };
     }
   } catch (e) {}
-  return { idx: 0, answers: {}, mode: "exam", submitted: false, view: "quiz" };
+  return { idx: 0, answers: {}, mode: "exam", submitted: false, view: "quiz", name: "" };
 }
 function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
 
@@ -462,12 +478,9 @@ function goResults() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function renderResults() {
-  const score = correctCount();
-  const pct = Math.round(score / TOTAL * 100);
-  const verdict = pct >= 90 ? "Crushed it." : pct >= 75 ? "Solid grasp." : pct >= 50 ? "Decent \u2014 review the misses." : "Worth a rewatch.";
+const SHARE_URL = "https://tongbaojia.github.io/cs336-quiz/";
 
-  // section breakdown
+function computeSections() {
   const sections = [];
   QUESTIONS.forEach(q => {
     let s = sections.find(x => x.name === q.section);
@@ -475,7 +488,141 @@ function renderResults() {
     s.total++;
     if (state.answers[q.id] === q.answer) s.correct++;
   });
+  return sections;
+}
 
+function buildSummaryText() {
+  const score = correctCount(), pct = Math.round(score / TOTAL * 100);
+  const who = state.name && state.name.trim() ? state.name.trim() + " \u2014 " : "";
+  const lines = [`${who}CS336 \u00b7 Lecture 1 Self-Test: ${score}/${TOTAL} (${pct}%)`];
+  computeSections().forEach(s => lines.push(`  ${s.name}: ${s.correct}/${s.total}`));
+  lines.push(`Take it: ${SHARE_URL}`);
+  return lines.join("\n");
+}
+
+let statusTimer = null;
+function flashStatus(msg, bad) {
+  const el = document.getElementById("shareStatus");
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = bad ? "var(--red)" : "var(--green)";
+  clearTimeout(statusTimer);
+  statusTimer = setTimeout(() => { el.textContent = ""; }, 2600);
+}
+
+async function copySummary() {
+  const text = buildSummaryText();
+  try {
+    await navigator.clipboard.writeText(text);
+    flashStatus("Summary copied \u2014 paste it in Slack");
+  } catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e2) {}
+    document.body.removeChild(ta);
+    flashStatus(ok ? "Summary copied" : "Copy failed \u2014 select manually", !ok);
+  }
+}
+
+function csvCell(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }
+
+function downloadCSV() {
+  const rows = [["question", "section", "your_answer", "your_text", "correct_answer", "correct_text", "is_correct"]];
+  QUESTIONS.forEach(q => {
+    const a = state.answers[q.id];
+    rows.push([
+      q.id, q.section,
+      a === undefined ? "" : LETTERS[a],
+      a === undefined ? "" : q.options[a],
+      LETTERS[q.answer], q.options[q.answer],
+      a === q.answer ? 1 : 0
+    ]);
+  });
+  const csv = rows.map(r => r.map(csvCell).join(",")).join("\r\n");
+  downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), fileName("csv"));
+  flashStatus("CSV downloaded");
+}
+
+function fileName(ext) {
+  const slug = state.name ? "-" + state.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") : "";
+  return `cs336-l1-results${slug}.${ext}`;
+}
+
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  if (w < 2 * r) r = w / 2;
+  if (h < 2 * r) r = h / 2;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function downloadImage() {
+  const W = 720, H = 460, S = 2;
+  const cv = document.createElement("canvas");
+  cv.width = W * S; cv.height = H * S;
+  const ctx = cv.getContext("2d");
+  ctx.scale(S, S);
+  const font = (w, s) => `${w} ${s}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+
+  ctx.fillStyle = "#0a0e14"; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = "#233044"; ctx.lineWidth = 1; roundRect(ctx, 10, 10, W - 20, H - 20, 16); ctx.stroke();
+
+  ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+  ctx.fillStyle = "#e7eef8"; ctx.font = font(700, 27);
+  ctx.fillText("CS336 \u00b7 Lecture 1 Self-Test", 38, 60);
+  ctx.fillStyle = "#8a98ad"; ctx.font = font(400, 14);
+  ctx.fillText(state.name && state.name.trim() ? state.name.trim() : "Overview & tokenization \u00b7 20 questions", 38, 84);
+
+  const score = correctCount(), pct = Math.round(score / TOTAL * 100);
+  const cx = 150, cy = 285, R = 92;
+  ctx.lineWidth = 18; ctx.lineCap = "round";
+  ctx.strokeStyle = "#1b2740";
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = pct >= 75 ? "#34d399" : pct >= 50 ? "#7c8cff" : "#fbbf24";
+  if (pct > 0) { ctx.beginPath(); ctx.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (pct / 100)); ctx.stroke(); }
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#e7eef8"; ctx.font = font(700, 42); ctx.fillText(pct + "%", cx, cy + 8);
+  ctx.fillStyle = "#8a98ad"; ctx.font = font(500, 16); ctx.fillText(score + " / " + TOTAL, cx, cy + 32);
+  ctx.textAlign = "left";
+
+  const secs = computeSections();
+  const x0 = 300, top = 158, rowH = 52, barW = 372;
+  secs.forEach((s, i) => {
+    const y = top + i * rowH;
+    ctx.fillStyle = "#cdd6e3"; ctx.font = font(600, 14); ctx.fillText(s.name, x0, y);
+    ctx.fillStyle = "#8a98ad"; ctx.textAlign = "right"; ctx.fillText(s.correct + "/" + s.total, x0 + barW, y); ctx.textAlign = "left";
+    const by = y + 12;
+    ctx.fillStyle = "#161f2e"; roundRect(ctx, x0, by, barW, 8, 4); ctx.fill();
+    if (s.correct > 0) { ctx.fillStyle = "#7c8cff"; roundRect(ctx, x0, by, barW * (s.correct / s.total), 8, 4); ctx.fill(); }
+  });
+
+  ctx.fillStyle = "#5f6c80"; ctx.font = font(400, 13);
+  ctx.fillText("tongbaojia.github.io/cs336-quiz", 38, H - 30);
+  ctx.textAlign = "right"; ctx.fillText("Stanford CS336 \u00b7 self-test", W - 38, H - 30); ctx.textAlign = "left";
+
+  cv.toBlob(b => { downloadBlob(b, fileName("png")); flashStatus("Image downloaded"); }, "image/png");
+}
+
+function renderResults() {
+  const score = correctCount();
+  const pct = Math.round(score / TOTAL * 100);
+  const verdict = pct >= 90 ? "Crushed it." : pct >= 75 ? "Solid grasp." : pct >= 50 ? "Decent \u2014 review the misses." : "Worth a rewatch.";
+
+  const sections = computeSections();
   const wrong = QUESTIONS.filter(q => state.answers[q.id] !== q.answer);
 
   const rows = sections.map(s => `
@@ -500,6 +647,19 @@ function renderResults() {
         </div>`;
       }).join("");
 
+  const esc = (state.name || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  const shareHtml = `
+    <div class="share">
+      <div class="lead">Share your result</div>
+      <input id="nameInput" class="name-input" type="text" maxlength="40" placeholder="Your name (optional \u2014 added to shared results)" value="${esc}" />
+      <div class="share-btns">
+        <button class="btn" id="copyBtn">Copy summary</button>
+        <button class="btn" id="csvBtn">Download CSV</button>
+        <button class="btn" id="imgBtn">Download image</button>
+      </div>
+      <div class="share-status" id="shareStatus"></div>
+    </div>`;
+
   document.getElementById("main").innerHTML = `
     <div class="card results">
       <div class="hero">
@@ -511,6 +671,7 @@ function renderResults() {
         </div>
         <div class="verdict">${verdict}</div>
       </div>
+      ${shareHtml}
       <div class="breakdown">${rows}</div>
       <div class="section-title">Review ${wrong.length ? `(${wrong.length} to revisit)` : ""}</div>
       <div class="review-list">${reviewHtml}</div>
@@ -527,11 +688,17 @@ function renderResults() {
     render();
   };
   document.getElementById("restartBtn").onclick = reset;
+
+  const nameInput = document.getElementById("nameInput");
+  if (nameInput) nameInput.oninput = (e) => { state.name = e.target.value; save(); };
+  document.getElementById("copyBtn").onclick = copySummary;
+  document.getElementById("csvBtn").onclick = downloadCSV;
+  document.getElementById("imgBtn").onclick = downloadImage;
 }
 
 function reset() {
   if (!confirm("Clear all answers and start over?")) return;
-  state = { idx: 0, answers: {}, mode: state.mode, submitted: false, view: "quiz" };
+  state = { idx: 0, answers: {}, mode: state.mode, submitted: false, view: "quiz", name: state.name };
   render();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
