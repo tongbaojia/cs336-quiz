@@ -39,9 +39,45 @@
     { part: "VI",  name: "Alignment",              blurb: "Turning raw next-token potential into something useful.", ids: [15, 16, 17] },
   ];
 
+  // Simplified-Chinese strings for the book view (信达雅 translation; technical terms kept in English).
+  const BOOK_ZH = {
+    titles: {
+      1: "概览与分词", 2: "PyTorch 与资源核算", 3: "架构与超参数", 4: "混合专家 (MoE)",
+      5: "GPU", 6: "Kernel 与 Triton", 7: "并行 · 基础", 8: "并行 · 实现",
+      9: "Scaling Laws · 基础", 10: "推理", 11: "Scaling Laws · 细节", 12: "评估",
+      13: "数据 I · 采集", 14: "数据 II · 处理", 15: "对齐 · SFT 与 RLHF",
+      16: "对齐 · RL 与可验证奖励", 17: "对齐 · 策略梯度",
+    },
+    kickers: {
+      1: "效率即一切；字母表的难题。", 2: "拿出草稿纸：六倍定律。", 3: "Transformer 的趋同进化。",
+      4: "如何不付代价地增加参数。", 5: "仓库与工厂。", 6: "让魔法不再神秘。",
+      7: "把数据中心当作一台计算机。", 8: "同样的道理，再用代码写一遍。", 9: "以小见大，预测大模型。",
+      10: "一切都关乎内存。", 11: "实验室真正使用的配方。", 12: "没有唯一正确的数字。",
+      13: "数据不会从天而降。", 14: "估计、打分、保留。", 15: "从原始潜能到得力助手。",
+      16: "当你能验证答案时。", 17: "奖优罚劣。",
+    },
+    parts: {
+      "I":   { name: "基础",            blurb: "为何要分词，以及为何单单一个数字就决定了一切的成本。" },
+      "II":  { name: "机器",            blurb: "免费换来更多参数，以及真正运行它们的硬件。" },
+      "III": { name: "规模",            blurb: "由千卡汇成的一台计算机，以及让你敢于下注的定律。" },
+      "IV":  { name: "如何判断它是否奏效", blurb: "没有唯一正确的数字。" },
+      "V":   { name: "数据",            blurb: "荒原，以及如何从中开采。" },
+      "VI":  { name: "对齐",            blurb: "把原始的下一词预测潜能，化为真正有用的东西。" },
+    },
+    ui: {
+      eyebrow: "为什么 · 配套精读",
+      h1a: "语言模型，", h1b: "讲透",
+      intro: "讲义页面讲清楚了「是什么」和「怎么做」；这里是另一半：用简短有力的篇章讲「为什么」——为什么要分词，为什么矩阵乘法是唯一要紧的运算，为什么一个千亿参数的模型本质上是个搬运内存的问题，以及为什么至今没有人能板着脸说清它究竟为何如此有效。公式才是点睛之笔。",
+      credit: "本篇在 <a href='https://platers.github.io/cs336-feynman/index.html' target='_blank' rel='noopener'><b>The CS336 Lectures — A Study Book in the Feynman Tradition</b></a>（platers.github.io）基础上改写并致谢。章节脉络借自原书，文字为求凝练而重写——发人深省，绝无废话。内容基于斯坦福 CS336（Hashimoto 与 Liang 主讲）。",
+      openLecture: "阅读完整讲义与测验 →",
+      tocLabel: "导读", back: "返回", backTtl: "全部讲义与测验",
+    },
+  };
+
   window.CS336 = window.CS336 || {};
   window.LECTURES = window.LECTURES || {};
   window.ESSAYS = window.ESSAYS || {};
+  window.ESSAYS_ZH = window.ESSAYS_ZH || {};
 
   function registerLecture(L) {
     if (!L || typeof L.id !== "number") { console.warn("registerLecture: bad lecture", L); return; }
@@ -51,7 +87,12 @@
     if (typeof id !== "number" || !E) { console.warn("registerEssay: bad essay", id); return; }
     window.ESSAYS[id] = E;
   }
+  function registerEssayZh(id, E) {
+    if (typeof id !== "number" || !E) { console.warn("registerEssayZh: bad essay", id); return; }
+    window.ESSAYS_ZH[id] = E;
+  }
   function getEssay(id) { return window.ESSAYS[id] || null; }
+  function getEssayZh(id) { return window.ESSAYS_ZH[id] || null; }
   function hasEssay(id) { return !!window.ESSAYS[id]; }
 
   function catalogEntry(id) { return CATALOG.find(c => c.id === id) || null; }
@@ -104,12 +145,13 @@
   }
 
   Object.assign(window.CS336, {
-    CATALOG, UNITS, UNIT_CLASS, BOOK_PARTS,
-    registerLecture, registerEssay, getEssay, hasEssay, catalogEntry, hasContent,
+    CATALOG, UNITS, UNIT_CLASS, BOOK_PARTS, BOOK_ZH,
+    registerLecture, registerEssay, registerEssayZh, getEssay, getEssayZh, hasEssay, catalogEntry, hasContent,
     loadProgress, saveProgress, getLec, setLec, resetProgress,
     quizBest, quizTotal, esc, renderMath,
   });
   // convenience globals for data files
   window.registerLecture = registerLecture;
   window.registerEssay = registerEssay;
+  window.registerEssayZh = registerEssayZh;
 })();
