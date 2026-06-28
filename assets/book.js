@@ -105,6 +105,7 @@
       b.onclick = () => { if (b.dataset.lang !== lang) setLang(b.dataset.lang); });
 
     C.renderMath(root);
+    if (C.enhanceCode) C.enhanceCode(root);
     setupScrollSpy();
     if (location.hash) {
       const t = document.getElementById(location.hash.slice(1));

@@ -28,13 +28,21 @@
       + `<a href="#quiz" data-sec="quiz">Check yourself</a>`;
 
     const sectionsHtml = sections.map(s =>
-      `<section class="section" id="${s.id}"><h2>${C.esc(s.title)}</h2>${C.renderBlocks(s.blocks)}</section>`
+      `<section class="section" id="${s.id}"><h2><a class="hanchor" href="#${s.id}" data-anchor="${s.id}" aria-label="Copy link to this section">#</a>${C.esc(s.title)}</h2>${C.renderBlocks(s.blocks)}</section>`
     ).join("");
 
     const takeaways = (L.takeaways && L.takeaways.length)
       ? `<div class="takeaways"><h2>Key takeaways</h2><ol>${L.takeaways.map(t => `<li>${t}</li>`).join("")}</ol></div>` : "";
     const refs = (L.references && L.references.length)
       ? `<div class="refs"><h3>References</h3><ul>${L.references.map(r => `<li>\u2022 ${r.url ? `<a href="${r.url}" target="_blank" rel="noopener">${C.esc(r.label)}</a>` : C.esc(r.label)}</li>`).join("")}</ul></div>` : "";
+
+    const switcher = `<select class="lec-switch" id="lecSwitch" aria-label="Jump to another lecture">`
+      + C.UNITS.filter(u => u !== "Guest").map(u => {
+          const opts = C.CATALOG.filter(c => c.unit === u && c.type !== "guest")
+            .map(c => `<option value="${c.id}"${c.id === id ? " selected" : ""}>Lecture ${c.id} — ${C.esc(c.title)}</option>`).join("");
+          return opts ? `<optgroup label="${u}">${opts}</optgroup>` : "";
+        }).join("")
+      + `</select>`;
 
     root.innerHTML = `
       <aside class="toc">
@@ -48,7 +56,7 @@
       </aside>
       <article class="article">
         <div class="lechead">
-          <div class="crumb"><a href="index.html">All lectures</a> <span>/</span> <span class="tag ${C.UNIT_CLASS[cat.unit]}">${cat.unit}</span> <span>Lecture ${id}</span></div>
+          <div class="crumb"><a href="index.html">All lectures</a> <span>/</span> <span class="tag ${C.UNIT_CLASS[cat.unit]}">${cat.unit}</span> ${switcher}</div>
           <h1>${C.esc(cat.title)}</h1>
           <div class="submeta">
             <span>${C.esc(cat.by)}</span><span>\u00b7</span>
@@ -63,10 +71,15 @@
         ${takeaways}
         ${refs}
         <div class="quizblock" id="quiz"><div id="quizmount"></div></div>
-        <div class="lecnav">${navLink(id - 1, "prev")}${navLink(id + 1, "next")}</div>
+        <div class="lecnav-wrap">
+          <div class="lecnav">${navLink(id - 1, "prev")}${navLink(id + 1, "next")}</div>
+          <div class="navhint">Tip: press <kbd>[</kbd> / <kbd>]</kbd> to move between lectures \u00b7 hover a heading to copy its link</div>
+        </div>
       </article>`;
 
     C.renderMath(root);
+    if (C.enhanceCode) C.enhanceCode(root);
+    setupNav(id);
 
     // quiz
     if (L.quiz && L.quiz.length) {
@@ -108,6 +121,42 @@
     onScroll();
   }
   function refreshReadUI() { /* hook for quiz->progress; homepage reads on next load */ }
+
+  function goLec(n) {
+    const c = C.catalogEntry(n);
+    if (c && c.type !== "guest" && C.hasContent(n)) location.href = "lecture.html?id=" + n;
+  }
+
+  // ---- nav QoL: lecture switcher, heading anchor-copy, [ / ] keyboard ----
+  function setupNav(id) {
+    const sw = document.getElementById("lecSwitch");
+    if (sw) sw.onchange = () => goLec(parseInt(sw.value, 10));
+
+    document.querySelectorAll(".hanchor").forEach(a => {
+      a.onclick = (e) => {
+        e.preventDefault();
+        const sec = a.dataset.anchor;
+        const url = location.origin + location.pathname + location.search + "#" + sec;
+        history.replaceState(null, "", location.pathname + location.search + "#" + sec);
+        const t = document.getElementById(sec);
+        if (t) t.scrollIntoView({ behavior: "smooth" });
+        if (C.copyText) C.copyText(url);
+        if (C.toast) C.toast("Section link copied");
+      };
+    });
+
+    if (!window.__lecKeys) {
+      window.__lecKeys = true;
+      document.addEventListener("keydown", (e) => {
+        const tag = (e.target.tagName || "").toLowerCase();
+        if (tag === "input" || tag === "select" || tag === "textarea" || e.target.isContentEditable) return;
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        const cur = parseInt(new URLSearchParams(location.search).get("id"), 10);
+        if (e.key === "[") { goLec(cur - 1); e.preventDefault(); }
+        else if (e.key === "]") { goLec(cur + 1); e.preventDefault(); }
+      });
+    }
+  }
 
   // ---- TOC scrollspy ----
   function setupScrollSpy() {
