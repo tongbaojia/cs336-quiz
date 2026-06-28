@@ -76,7 +76,7 @@ registerLecture({
           "h": "Why cross-model perplexity comparisons are fraught"
         },
         {
-          "p": "Perplexity is <em>per token</em>, and a token is not a fixed unit. A model with a coarser tokenizer segments the same text into fewer, higher-information tokens: its per-token NLL is larger but \\(|D|\\) is smaller. Two models with different vocabularies therefore report perplexities in incomparable units — a bigger vocab can flatter the number without the model being better. The fix is to normalize by a tokenizer-independent denominator, raw UTF-8 <strong>bytes</strong> (or characters):"
+          "p": "Perplexity is <em>per token</em>, and a token is not a fixed unit. A model with a coarser tokenizer segments the same text into fewer, higher-information tokens: its per-token NLL is larger but \\(|D|\\) is smaller. Two models with different vocabularies therefore report perplexities in incomparable units — a <em>finer</em> tokenizer (more, lower-information tokens) yields a lower per-token perplexity without the model being any better. The fix is to normalize by a tokenizer-independent denominator, raw UTF-8 <strong>bytes</strong> (or characters):"
         },
         {
           "math": "\\text{bits-per-byte} = \\frac{1}{n_{\\text{bytes}}}\\sum_{i=1}^{|D|} \\bigl(-\\log_2 p(x_i \\mid x_{1:i-1})\\bigr)"
