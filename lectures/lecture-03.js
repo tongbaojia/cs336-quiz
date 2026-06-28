@@ -1,5 +1,4 @@
-/* CS336 Companion lecture data. Auto-formatted; quiz answer positions
-   round-robin-balanced across A/B/C/D. Edit content here; keep it pure data. */
+/* CS336 Companion lecture data (math: \(..\)/\[..\]; $ is literal). */
 registerLecture({
   "id": 3,
   "estMinutes": 20,
@@ -81,7 +80,7 @@ registerLecture({
       "title": "Normalization: where it goes, and what kind",
       "blocks": [
         {
-          "p": "Two orthogonal choices: <em>where</em> the norm sits relative to the residual, and <em>which</em> norm. Post-norm (original) puts the norm <em>on</em> the residual path, $x_{l+1} = \\mathrm{Norm}(x_l + \\mathrm{Sublayer}(x_l))$; pre-norm moves it <em>inside</em> the block so the residual highway stays a clean identity:"
+          "p": "Two orthogonal choices: <em>where</em> the norm sits relative to the residual, and <em>which</em> norm. Post-norm (original) puts the norm <em>on</em> the residual path, \\(x_{l+1} = \\mathrm{Norm}(x_l + \\mathrm{Sublayer}(x_l))\\); pre-norm moves it <em>inside</em> the block so the residual highway stays a clean identity:"
         },
         {
           "math": "x_{l+1} \\;=\\; x_l \\,+\\, \\mathrm{Sublayer}\\!\\big(\\mathrm{Norm}(x_l)\\big) \\qquad \\text{(pre-norm: unnormalized residual path)}"
@@ -94,7 +93,7 @@ registerLecture({
           "h": "RMSNorm vs. LayerNorm"
         },
         {
-          "p": "LayerNorm normalizes both mean and variance across $d_{model}$ and adds a learned gain <em>and</em> bias. RMSNorm (Zhang &amp; Sennrich 2019) drops mean-centering and the bias entirely — just divide by the root-mean-square and rescale:"
+          "p": "LayerNorm normalizes both mean and variance across \\(d_{model}\\) and adds a learned gain <em>and</em> bias. RMSNorm (Zhang &amp; Sennrich 2019) drops mean-centering and the bias entirely — just divide by the root-mean-square and rescale:"
         },
         {
           "math": "\\mathrm{LayerNorm}(x) = \\frac{x - \\mu}{\\sqrt{\\sigma^2 + \\epsilon}}\\odot\\gamma + \\beta, \\qquad \\mu = \\tfrac1d\\textstyle\\sum_i x_i,\\;\\; \\sigma^2 = \\tfrac1d\\textstyle\\sum_i (x_i-\\mu)^2"
@@ -120,13 +119,13 @@ registerLecture({
       "title": "Activations and the GLU family",
       "blocks": [
         {
-          "p": "The FFN is two matmuls with a nonlinearity between; the zoo — ReLU, GeLU, Swish, GLU, ReGLU, GeGLU, SwiGLU — varies only that middle piece and whether it is <em>gated</em>. The original FFN is $\\mathrm{FF}(x)=\\max(0,xW_1)W_2$; GeLU (GPT-1/2/3, GPT-J, BLOOM) swaps the hard gate for a smooth, probabilistic one, $\\mathrm{GELU}(x)=x\\,\\Phi(x)$ with $\\Phi$ the standard-Gaussian CDF."
+          "p": "The FFN is two matmuls with a nonlinearity between; the zoo — ReLU, GeLU, Swish, GLU, ReGLU, GeGLU, SwiGLU — varies only that middle piece and whether it is <em>gated</em>. The original FFN is \\(\\mathrm{FF}(x)=\\max(0,xW_1)W_2\\); GeLU (GPT-1/2/3, GPT-J, BLOOM) swaps the hard gate for a smooth, probabilistic one, \\(\\mathrm{GELU}(x)=x\\,\\Phi(x)\\) with \\(\\Phi\\) the standard-Gaussian CDF."
         },
         {
           "h": "Gated linear units (*GLU)"
         },
         {
-          "p": "A GLU augments the first projection with a second linear term that <em>gates</em> it elementwise: $\\max(0,xW_1)$ becomes $\\max(0,xW_1)\\otimes(xV)$, adding a weight matrix $V$ (this is ReGLU). Swap the activation on the gated branch to get the family — <strong>GeGLU</strong> (GeLU gate; T5 v1.1, Gemma 2/3) and <strong>SwiGLU</strong> (Swish gate, $\\mathrm{Swish}(z)=z\\,\\sigma(z)$; LLaMA, PaLM, Mistral, OLMo, most models post-2023):"
+          "p": "A GLU augments the first projection with a second linear term that <em>gates</em> it elementwise: \\(\\max(0,xW_1)\\) becomes \\(\\max(0,xW_1)\\otimes(xV)\\), adding a weight matrix \\(V\\) (this is ReGLU). Swap the activation on the gated branch to get the family — <strong>GeGLU</strong> (GeLU gate; T5 v1.1, Gemma 2/3) and <strong>SwiGLU</strong> (Swish gate, \\(\\mathrm{Swish}(z)=z\\,\\sigma(z)\\); LLaMA, PaLM, Mistral, OLMo, most models post-2023):"
         },
         {
           "math": "\\mathrm{FF}_{\\mathrm{SwiGLU}}(x) = \\big(\\mathrm{Swish}(xW_1)\\otimes xV\\big)\\,W_2, \\qquad \\mathrm{Swish}(z) = z\\,\\sigma(z)"
@@ -136,7 +135,7 @@ registerLecture({
           "lang": "python"
         },
         {
-          "p": "A GLU FFN has <em>three</em> weight matrices ($W_1, V, W_2$) instead of two. To hold parameter count fixed against the standard $d_{ff}=4d_{model}$, scale the hidden width down by $2/3$:"
+          "p": "A GLU FFN has <em>three</em> weight matrices (\\(W_1, V, W_2\\)) instead of two. To hold parameter count fixed against the standard \\(d_{ff}=4d_{model}\\), scale the hidden width down by \\(2/3\\):"
         },
         {
           "math": "d_{ff} \\;=\\; \\tfrac{2}{3}\\cdot 4\\,d_{model} \\;=\\; \\tfrac{8}{3}\\,d_{model} \\;\\approx\\; 2.67\\,d_{model}"
@@ -193,20 +192,20 @@ registerLecture({
           "h": "RoPE: rotary position embeddings"
         },
         {
-          "p": "The design goal (Su et al. 2021): an embedding $f(x,i)$ whose attention inner product depends only on the <em>relative</em> offset, $\\langle f(x,i), f(y,j)\\rangle = g(x,\\,y,\\,i-j)$. Absolute schemes fail this — they leave non-relative cross-terms in the inner product. The trick: inner products are invariant under rotation, so encode position $i$ by <em>rotating</em> the query/key vector by an angle proportional to $i$. Pair up coordinates and rotate each 2-D pair by $i\\theta_k$ with $\\theta_k=\\mathrm{base}^{-2k/d}$ (base $=10^4$):"
+          "p": "The design goal (Su et al. 2021): an embedding \\(f(x,i)\\) whose attention inner product depends only on the <em>relative</em> offset, \\(\\langle f(x,i), f(y,j)\\rangle = g(x,\\,y,\\,i-j)\\). Absolute schemes fail this — they leave non-relative cross-terms in the inner product. The trick: inner products are invariant under rotation, so encode position \\(i\\) by <em>rotating</em> the query/key vector by an angle proportional to \\(i\\). Pair up coordinates and rotate each 2-D pair by \\(i\\theta_k\\) with \\(\\theta_k=\\mathrm{base}^{-2k/d}\\) (base \\(=10^4\\)):"
         },
         {
           "math": "R_{i,k} = \\begin{pmatrix}\\cos i\\theta_k & -\\sin i\\theta_k \\\\ \\sin i\\theta_k & \\cos i\\theta_k\\end{pmatrix}, \\qquad (R_i q)^{\\top}(R_j k) = q^{\\top} R_{j-i}\\, k"
         },
         {
-          "p": "The dot product depends only on $j-i$ — exactly the relative property. RoPE is multiplicative (no additive cross-terms) and is reapplied at <em>every</em> attention layer to enforce position invariance."
+          "p": "The dot product depends only on \\(j-i\\) — exactly the relative property. RoPE is multiplicative (no additive cross-terms) and is reapplied at <em>every</em> attention layer to enforce position invariance."
         },
         {
           "code": "# q, k: (B, H, T, d_head);  cos, sin: (T, d_head/2) from theta_k = base ** (-2k/d)\ndef apply_rope(x, cos, sin):\n    x1, x2 = x[..., 0::2], x[..., 1::2]            # pair up coordinates\n    rot = stack([x1 * cos - x2 * sin,\n                 x1 * sin + x2 * cos], dim=-1)      # rotate each 2-D pair\n    return rot.flatten(-2)                          # re-interleave the pairs",
           "lang": "python"
         },
         {
-          "callout": "RoPE is now the default (GPT-J/PaLM/LLaMA onward). Low frequencies (small $\\theta_k$) carry long-range position, high frequencies carry local order. The rotary <strong>base</strong> is the long-context knob: raising it (NTK/YaRN) or interpolating positions extends usable context beyond the training length.",
+          "callout": "RoPE is now the default (GPT-J/PaLM/LLaMA onward). Low frequencies (small \\(\\theta_k\\)) carry long-range position, high frequencies carry local order. The rotary <strong>base</strong> is the long-context knob: raising it (NTK/YaRN) or interpolating positions extends usable context beyond the training length.",
           "kind": "insight"
         },
         {
@@ -214,7 +213,7 @@ registerLecture({
           "kind": "pitfall"
         },
         {
-          "p": "<strong>ALiBi</strong> (Press et al. 2022) drops embeddings entirely and adds a head-specific linear penalty $-m\\,(i-j)$ to the attention logits — closer tokens score higher. It was built for <em>length extrapolation</em>: train short, test long. <strong>NoPE</strong> (no positional encoding) leans on the causal mask alone to recover order and is surprisingly competitive — recent models interleave it (long-range info via NoPE) with RoPE + sliding-window for short-range (e.g. Cohere Command A)."
+          "p": "<strong>ALiBi</strong> (Press et al. 2022) drops embeddings entirely and adds a head-specific linear penalty \\(-m\\,(i-j)\\) to the attention logits — closer tokens score higher. It was built for <em>length extrapolation</em>: train short, test long. <strong>NoPE</strong> (no positional encoding) leans on the causal mask alone to recover order and is surprisingly competitive — recent models interleave it (long-range info via NoPE) with RoPE + sliding-window for short-range (e.g. Cohere Command A)."
         }
       ]
     },
@@ -229,13 +228,13 @@ registerLecture({
           "math": "\\text{KV cache bytes} \\;=\\; 2 \\cdot b \\cdot n_{\\mathrm{layers}} \\cdot n_{kv} \\cdot d_{head} \\cdot T \\cdot (\\text{bytes/elt})"
         },
         {
-          "p": "That read is pure data movement: low arithmetic intensity, memory-bandwidth-bound. The KV cache — not FLOPs — caps the batch size and context length you can serve, and the direct lever is $n_{kv}$, the number of K/V heads."
+          "p": "That read is pure data movement: low arithmetic intensity, memory-bandwidth-bound. The KV cache — not FLOPs — caps the batch size and context length you can serve, and the direct lever is \\(n_{kv}\\), the number of K/V heads."
         },
         {
           "h": "MHA → MQA → GQA"
         },
         {
-          "p": "<strong>MQA</strong> (Shazeer 2019): keep all $H$ query heads but share a <em>single</em> K and V head — shrinks the cache by $H\\times$, with a small perplexity hit. <strong>GQA</strong> (Ainslie 2023): interpolate — split $H$ query heads into $G$ groups, each sharing one KV head. $G=H$ is MHA, $G=1$ is MQA; a clean knob trading expressiveness for cache size, with <em>negligible</em> quality loss at e.g. $G=8$ (LLaMA-2 70B)."
+          "p": "<strong>MQA</strong> (Shazeer 2019): keep all \\(H\\) query heads but share a <em>single</em> K and V head — shrinks the cache by \\(H\\times\\), with a small perplexity hit. <strong>GQA</strong> (Ainslie 2023): interpolate — split \\(H\\) query heads into \\(G\\) groups, each sharing one KV head. \\(G=H\\) is MHA, \\(G=1\\) is MQA; a clean knob trading expressiveness for cache size, with <em>negligible</em> quality loss at e.g. \\(G=8\\) (LLaMA-2 70B)."
         },
         {
           "table": {
@@ -283,7 +282,7 @@ registerLecture({
           "p": "<strong>QK-norm</strong>: RMS/LayerNorm the queries and keys <em>before</em> the softmax to stop attention logits from blowing up — a stability trick from vision/multimodal (Dehghani 2023, Chameleon), now in DCLM, OLMo 2, Gemma 2. Separately, <strong>sparse / sliding-window</strong> attention (GPT-3's sparse blocks; Mistral's sliding window) caps the quadratic cost; modern models interleave full and local layers (e.g. every 4th layer full in Command A; also LLaMA 4, Gemma)."
         },
         {
-          "callout": "Softmaxes are the usual suspects in training blow-ups (exponentials, near-zero denominators). QK-norm, the z-loss (PaLM: penalize $\\log^2 Z$), and logit soft-capping (Gemma 2's $c\\cdot\\tanh(\\cdot/c)$) all exist to tame the same failure mode.",
+          "callout": "Softmaxes are the usual suspects in training blow-ups (exponentials, near-zero denominators). QK-norm, the z-loss (PaLM: penalize \\(\\log^2 Z\\)), and logit soft-capping (Gemma 2's \\(c\\cdot\\tanh(\\cdot/c)\\)) all exist to tame the same failure mode.",
           "kind": "pitfall"
         }
       ]
@@ -299,13 +298,13 @@ registerLecture({
           "h": "FFN ratio and head dimension"
         },
         {
-          "p": "<strong>FFN ratio:</strong> $d_{ff}=4\\,d_{model}$ (ungated) or $\\approx\\tfrac{8}{3}d_{model}$ (GLU) is nearly universal; Kaplan 2020 finds a broad near-optimal basin from ~1–10×. The bold exception is T5-11B at $d_{ff}=65536,\\,d_{model}=1024$ — a 64× multiplier — but T5 v1.1 reverted to ~2.5× GeGLU, implying 64× was suboptimal. <strong>Head dim:</strong> by convention $n_{heads}\\times d_{head}\\approx d_{model}$ (ratio ~1), with $d_{head}\\approx128$ typical (GPT-3, LLaMA-2). It need not hold, and Bhojanapalli 2020 warned of low-rank bottlenecks, but they don't bite in practice."
+          "p": "<strong>FFN ratio:</strong> \\(d_{ff}=4\\,d_{model}\\) (ungated) or \\(\\approx\\tfrac{8}{3}d_{model}\\) (GLU) is nearly universal; Kaplan 2020 finds a broad near-optimal basin from ~1–10×. The bold exception is T5-11B at \\(d_{ff}=65536,\\,d_{model}=1024\\) — a 64× multiplier — but T5 v1.1 reverted to ~2.5× GeGLU, implying 64× was suboptimal. <strong>Head dim:</strong> by convention \\(n_{heads}\\times d_{head}\\approx d_{model}\\) (ratio ~1), with \\(d_{head}\\approx128\\) typical (GPT-3, LLaMA-2). It need not hold, and Bhojanapalli 2020 warned of low-rank bottlenecks, but they don't bite in practice."
         },
         {
           "h": "Aspect ratio, vocab, tying, regularization"
         },
         {
-          "p": "<strong>Aspect ratio</strong> $d_{model}/n_{layers}$ sits in a wide 100–200 band (GPT-3/OPT/Mistral/Qwen ~128; LLaMA ~102; BLOOM ~205). Loss is flat across it; the real constraint is systems — very deep models are harder to parallelize and have higher latency (Tay 2021)."
+          "p": "<strong>Aspect ratio</strong> \\(d_{model}/n_{layers}\\) sits in a wide 100–200 band (GPT-3/OPT/Mistral/Qwen ~128; LLaMA ~102; BLOOM ~205). Loss is flat across it; the real constraint is systems — very deep models are harder to parallelize and have higher latency (Tay 2021)."
         },
         {
           "table": {
@@ -339,7 +338,7 @@ registerLecture({
           }
         },
         {
-          "p": "<strong>Vocab:</strong> monolingual models need only 30–50k (LLaMA 32k, GPT-2/3 50k); multilingual/production systems run 100–250k (PaLM 256k, Qwen 152k, GPT-4 ~100k). <strong>Weight tying</strong> — sharing the input embedding with the output projection (Press &amp; Wolf 2017) — saves $|V|\\times d_{model}$ params; it matters most for small models / large vocab, and many large models now <em>untie</em> because the saving is marginal and untied scores slightly better."
+          "p": "<strong>Vocab:</strong> monolingual models need only 30–50k (LLaMA 32k, GPT-2/3 50k); multilingual/production systems run 100–250k (PaLM 256k, Qwen 152k, GPT-4 ~100k). <strong>Weight tying</strong> — sharing the input embedding with the output projection (Press &amp; Wolf 2017) — saves \\(|V|\\times d_{model}\\) params; it matters most for small models / large vocab, and many large models now <em>untie</em> because the saving is marginal and untied scores slightly better."
         },
         {
           "p": "<strong>Regularization:</strong> modern pretraining mostly drops dropout (trillions of tokens, single epoch → little memorization risk) but keeps weight decay. Andriushchenko 2023: weight decay here isn't about overfitting — it shapes optimization dynamics and interacts with the cosine LR schedule."
@@ -409,7 +408,7 @@ registerLecture({
           "p": "Read the table as a hierarchy of confidence. Pre-norm is a genuine consensus with mechanistic backing. GQA is a hard inference win. RMSNorm and no-bias are cheap, safe efficiency. SwiGLU and the exact FFN ratio are small, partly cargo-culted gains."
         },
         {
-          "callout": "Tatsu's meta-point: learn from others' experience, but know <em>which</em> choices are load-bearing. Pre-norm and GQA you should copy with confidence; the precise $d_{ff}$ ratio or aspect ratio you can treat as a wide basin set by systems constraints. Convergence across teams is strong evidence — but some of it is imitation, not independent validation.",
+          "callout": "Tatsu's meta-point: learn from others' experience, but know <em>which</em> choices are load-bearing. Pre-norm and GQA you should copy with confidence; the precise \\(d_{ff}\\) ratio or aspect ratio you can treat as a wide basin set by systems constraints. Convergence across teams is strong evidence — but some of it is imitation, not independent validation.",
           "kind": "key"
         },
         {
@@ -421,7 +420,7 @@ registerLecture({
   "takeaways": [
     "Pre-norm is the one near-universal architecture consensus: a clean (unnormalized) residual path → stable gradients, larger LRs, no warmup.",
     "RMSNorm and dropping biases are efficiency plays — equal quality, fewer params/ops, less memory movement (FLOPs ≠ runtime).",
-    "SwiGLU gives small, consistent gains and is ~free once you set $d_{ff}=\\tfrac{8}{3}d_{model}$ to keep parameters constant.",
+    "SwiGLU gives small, consistent gains and is ~free once you set \\(d_{ff}=\\tfrac{8}{3}d_{model}\\) to keep parameters constant.",
     "RoPE rotates Q/K by an angle ∝ position so attention depends only on the relative offset; the rotary base is the long-context knob (it doesn't extrapolate for free).",
     "GQA shrinks the KV cache (decode is memory-bound) with negligible quality loss — an inference-economics win, not a quality one.",
     "Most hyperparameters (FFN ratio, head dim, aspect ratio) are wide basins; systems constraints, not loss, pick the value.",

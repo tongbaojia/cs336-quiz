@@ -1,5 +1,4 @@
-/* CS336 Companion lecture data. Auto-formatted; quiz answer positions
-   round-robin-balanced across A/B/C/D. Edit content here; keep it pure data. */
+/* CS336 Companion lecture data (math: \(..\)/\[..\]; $ is literal). */
 registerLecture({
   "id": 4,
   "estMinutes": 19,
@@ -10,14 +9,14 @@ registerLecture({
     "expert parallelism",
     "DeepSeek"
   ],
-  "overview": "Mixture-of-Experts replaces the transformer's dense feedforward block with many <strong>expert</strong> FFNs plus a <strong>router</strong> that activates only the top-$k$ per token — <em>decoupling parameter count from per-token FLOPs</em>. Lecture 4 walks the routing zoo, the heuristic load-balancing losses that make sparse training actually work, the all-to-all systems cost, and the DeepSeek-MoE recipe that defines today's open frontier.",
+  "overview": "Mixture-of-Experts replaces the transformer's dense feedforward block with many <strong>expert</strong> FFNs plus a <strong>router</strong> that activates only the top-\\(k\\) per token — <em>decoupling parameter count from per-token FLOPs</em>. Lecture 4 walks the routing zoo, the heuristic load-balancing losses that make sparse training actually work, the all-to-all systems cost, and the DeepSeek-MoE recipe that defines today's open frontier.",
   "sections": [
     {
       "id": "why-moe",
       "title": "Sparsity: capacity without compute",
       "blocks": [
         {
-          "p": "A standard transformer block spends roughly two-thirds of its parameters in the FFN. A <strong>sparse MoE</strong> replaces that single FFN with $N$ parallel expert FFNs $E_1,\\dots,E_N$ and a router that, per token, selects only $k$ of them (typically $k\\!=\\!1$ or $2$). This is <em>conditional computation</em>: total capacity scales with $N$, but the compute each token pays scales with $k$."
+          "p": "A standard transformer block spends roughly two-thirds of its parameters in the FFN. A <strong>sparse MoE</strong> replaces that single FFN with \\(N\\) parallel expert FFNs \\(E_1,\\dots,E_N\\) and a router that, per token, selects only \\(k\\) of them (typically \\(k\\!=\\!1\\) or \\(2\\)). This is <em>conditional computation</em>: total capacity scales with \\(N\\), but the compute each token pays scales with \\(k\\)."
         },
         {
           "math": "\\underbrace{|\\theta|}_{\\text{capacity}\\;\\propto\\;N} \\qquad\\text{decoupled from}\\qquad \\underbrace{\\text{FLOPs}/\\text{token}}_{\\text{compute}\\;\\propto\\;k}, \\qquad k \\ll N"
@@ -66,7 +65,7 @@ registerLecture({
           "kind": "insight"
         },
         {
-          "callout": "An MoE does <strong>not</strong> shrink your memory footprint — all $N$ experts must be resident, so weight VRAM scales with <em>total</em> not active params. The win is FLOPs and quality-per-FLOP, never footprint. A '47B' MoE needs ~47B-params worth of HBM even though it computes like a 13B.",
+          "callout": "An MoE does <strong>not</strong> shrink your memory footprint — all \\(N\\) experts must be resident, so weight VRAM scales with <em>total</em> not active params. The win is FLOPs and quality-per-FLOP, never footprint. A '47B' MoE needs ~47B-params worth of HBM even though it computes like a 13B.",
           "kind": "pitfall"
         },
         {
@@ -92,7 +91,7 @@ registerLecture({
           "math": "y(x) \\;=\\; \\sum_{i \\in \\mathcal{T}(x)} g_i(x)\\, E_i(x), \\qquad \\mathcal{T}(x) = \\mathrm{TopK}_k\\big(h(x)\\big), \\qquad h(x) = W_r\\,x"
         },
         {
-          "p": "The router $W_r$ is a tiny linear layer ($d_{\\text{model}}\\times N$) — negligible FLOPs. The pipeline per token: compute affinities $h(x)$, take the top-$k$ experts, turn their scores into gate weights $g_i$, dispatch the token to those experts, then combine the outputs weighted by $g_i$. The gate is usually a softmax over affinities:"
+          "p": "The router \\(W_r\\) is a tiny linear layer (\\(d_{\\text{model}}\\times N\\)) — negligible FLOPs. The pipeline per token: compute affinities \\(h(x)\\), take the top-\\(k\\) experts, turn their scores into gate weights \\(g_i\\), dispatch the token to those experts, then combine the outputs weighted by \\(g_i\\). The gate is usually a softmax over affinities:"
         },
         {
           "math": "g_i(x) \\;=\\; \\frac{\\exp\\!\\big(h_i(x)\\big)}{\\sum_{j=1}^{N}\\exp\\!\\big(h_j(x)\\big)}"
@@ -102,11 +101,11 @@ registerLecture({
           "lang": "python"
         },
         {
-          "callout": "Where the softmax sits matters. <strong>Gate-then-TopK</strong> (DeepSeek V1-2, Grok, Qwen): softmax over all $N$, then keep the top-$k$ weights as-is. <strong>TopK-then-softmax</strong> (Mixtral, DBRX): select first, renormalize only the chosen $k$ so gates sum to 1. DeepSeek-V3 swaps the softmax for a per-expert <em>sigmoid</em> affinity, then normalizes the selected gates.",
+          "callout": "Where the softmax sits matters. <strong>Gate-then-TopK</strong> (DeepSeek V1-2, Grok, Qwen): softmax over all \\(N\\), then keep the top-\\(k\\) weights as-is. <strong>TopK-then-softmax</strong> (Mixtral, DBRX): select first, renormalize only the chosen \\(k\\) so gates sum to 1. DeepSeek-V3 swaps the softmax for a per-expert <em>sigmoid</em> affinity, then normalizes the selected gates.",
           "kind": "note"
         },
         {
-          "callout": "Because only $k$ of $N$ experts run, the layer is a learned, sparse lookup over sub-networks — the same trick as conditional computation in Shazeer 2017, but now cheap enough to dominate the parameter budget of frontier models.",
+          "callout": "Because only \\(k\\) of \\(N\\) experts run, the layer is a learned, sparse lookup over sub-networks — the same trick as conditional computation in Shazeer 2017, but now cheap enough to dominate the parameter budget of frontier models.",
           "kind": "connection"
         }
       ]
@@ -116,7 +115,7 @@ registerLecture({
       "title": "Routing: who chooses whom",
       "blocks": [
         {
-          "p": "Most routing reduces to 'choose top-$k$', but the choice can run in either direction — or be solved globally. This single decision drives load balance, causality, and whether tokens get dropped."
+          "p": "Most routing reduces to 'choose top-\\(k\\)', but the choice can run in either direction — or be solved globally. This single decision drives load balance, causality, and whether tokens get dropped."
         },
         {
           "table": {
@@ -149,7 +148,7 @@ registerLecture({
           }
         },
         {
-          "p": "In practice almost everyone uses <strong>token-choice top-k</strong>. The interesting axis is $k$: Switch runs top-1; GShard, Mixtral, and Grok use 2; Qwen-MoE and DBRX use 4; DeepSeek routes 6-8 fine-grained experts. Top-1 is cheapest and easiest to shard but gives the router a weak learning signal; $k\\!\\ge\\!2$ lets gradients compare experts at the cost of more compute and comm."
+          "p": "In practice almost everyone uses <strong>token-choice top-k</strong>. The interesting axis is \\(k\\): Switch runs top-1; GShard, Mixtral, and Grok use 2; Qwen-MoE and DBRX use 4; DeepSeek routes 6-8 fine-grained experts. Top-1 is cheapest and easiest to shard but gives the router a weak learning signal; \\(k\\!\\ge\\!2\\) lets gradients compare experts at the cost of more compute and comm."
         },
         {
           "table": {
@@ -197,20 +196,20 @@ registerLecture({
       "title": "Load balancing & the training objective",
       "blocks": [
         {
-          "p": "Systems efficiency demands experts get used <em>evenly</em> — idle experts waste their device, overloaded ones drop tokens. But left alone, routing collapses onto a few favorites, and the hard top-$k$ decision is non-differentiable. Three historical fixes: RL on the gating policy, stochastic perturbations, and heuristic balancing losses. Practice overwhelmingly picks the last. The Switch Transformer auxiliary loss is the template:"
+          "p": "Systems efficiency demands experts get used <em>evenly</em> — idle experts waste their device, overloaded ones drop tokens. But left alone, routing collapses onto a few favorites, and the hard top-\\(k\\) decision is non-differentiable. Three historical fixes: RL on the gating policy, stochastic perturbations, and heuristic balancing losses. Practice overwhelmingly picks the last. The Switch Transformer auxiliary loss is the template:"
         },
         {
           "math": "\\mathcal{L}_{\\text{bal}} \\;=\\; \\alpha\\,N \\sum_{i=1}^{N} f_i\\, P_i, \\qquad f_i = \\tfrac{1}{T}\\sum_{x}\\mathbf{1}\\{\\arg\\max_j p_j(x) = i\\}, \\qquad P_i = \\tfrac{1}{T}\\sum_{x} p_i(x)"
         },
         {
-          "p": "$f_i$ is the hard fraction of tokens routed to expert $i$; $P_i$ is its mean soft probability. The product is minimized when both are uniform ($f_i=P_i=1/N$). Crucially $f_i$ is an argmax count with no gradient, so the signal flows entirely through $P_i$: $\\;\\partial \\mathcal{L}_{\\text{bal}}/\\partial p_i(x) = \\frac{\\alpha N}{T^2}\\sum_x \\mathbf{1}\\{\\arg\\max p(x)=i\\}$ — proportional to how often expert $i$ already wins, so heavily-used experts get pushed down hardest."
+          "p": "\\(f_i\\) is the hard fraction of tokens routed to expert \\(i\\); \\(P_i\\) is its mean soft probability. The product is minimized when both are uniform (\\(f_i=P_i=1/N\\)). Crucially \\(f_i\\) is an argmax count with no gradient, so the signal flows entirely through \\(P_i\\): \\(\\;\\partial \\mathcal{L}_{\\text{bal}}/\\partial p_i(x) = \\frac{\\alpha N}{T^2}\\sum_x \\mathbf{1}\\{\\arg\\max p(x)=i\\}\\) — proportional to how often expert \\(i\\) already wins, so heavily-used experts get pushed down hardest."
         },
         {
-          "callout": "The elegance: the loss multiplies a <strong>non-differentiable</strong> load term $f_i$ by a <strong>differentiable</strong> probability term $P_i$. You can't backprop through the discrete route, so you instead penalize the soft probability of whichever experts are over-chosen — a surrogate that steers routing toward balance without ever differentiating the argmax.",
+          "callout": "The elegance: the loss multiplies a <strong>non-differentiable</strong> load term \\(f_i\\) by a <strong>differentiable</strong> probability term \\(P_i\\). You can't backprop through the discrete route, so you instead penalize the soft probability of whichever experts are over-chosen — a surrogate that steers routing toward balance without ever differentiating the argmax.",
           "kind": "insight"
         },
         {
-          "p": "Even with the loss, instantaneous load is bursty, so each expert has a fixed <strong>capacity</strong>. Tokens past it overflow and are <em>dropped</em> — they skip the FFN and pass through on the residual only. The capacity factor $f_{\\text{cap}}$ trades dropped tokens against wasted compute/memory:"
+          "p": "Even with the loss, instantaneous load is bursty, so each expert has a fixed <strong>capacity</strong>. Tokens past it overflow and are <em>dropped</em> — they skip the FFN and pass through on the residual only. The capacity factor \\(f_{\\text{cap}}\\) trades dropped tokens against wasted compute/memory:"
         },
         {
           "math": "\\text{capacity} \\;=\\; f_{\\text{cap}}\\cdot\\frac{k\\,T}{N}\\ \\text{tokens/expert}, \\qquad \\text{overflow}\\ \\to\\ \\text{dropped (residual only)}"
@@ -298,7 +297,7 @@ registerLecture({
           }
         },
         {
-          "callout": "The aux loss directly <em>fights</em> the LM loss: too large an $\\alpha$ trades quality for balance, too small and you get collapse and dropped tokens. DeepSeek-V3's bias trick is attractive precisely because it changes <strong>who gets selected</strong> without injecting a competing gradient into the gate — balance without taxing the language objective. (Note OLMoE found gains from fine-grained experts but, unlike DeepSeek, <em>none</em> from shared ones — the recipe is not settled.)",
+          "callout": "The aux loss directly <em>fights</em> the LM loss: too large an \\(\\alpha\\) trades quality for balance, too small and you get collapse and dropped tokens. DeepSeek-V3's bias trick is attractive precisely because it changes <strong>who gets selected</strong> without injecting a competing gradient into the gate — balance without taxing the language objective. (Note OLMoE found gains from fine-grained experts but, unlike DeepSeek, <em>none</em> from shared ones — the recipe is not settled.)",
           "kind": "pitfall"
         }
       ]
@@ -312,13 +311,13 @@ registerLecture({
         },
         {
           "list": [
-            "<strong>Expert parallelism (EP):</strong> shard the $N$ experts across devices; each holds $N/\\text{EP}$ of them.",
+            "<strong>Expert parallelism (EP):</strong> shard the \\(N\\) experts across devices; each holds \\(N/\\text{EP}\\) of them.",
             "<strong>Two all-to-all per MoE layer:</strong> a <em>dispatch</em> sends each token to its expert's device, then a <em>combine</em> gathers the weighted outputs back.",
             "<strong>MegaBlocks</strong> (Gale 2022): recast the MoE forward as block-sparse matmuls, eliminating capacity-factor token drops and padding waste — now standard in open MoEs."
           ]
         },
         {
-          "callout": "All-to-all is the real bottleneck. It is bandwidth-bound, scales with tokens × $d_{\\text{model}}$, and — worse — <strong>stalls on imbalance</strong>: one overloaded expert makes every device wait at the collective. Multi-node MoE only pays off when interconnect (NVLink/InfiniBand) is fast enough that comm hides behind expert compute.",
+          "callout": "All-to-all is the real bottleneck. It is bandwidth-bound, scales with tokens × \\(d_{\\text{model}}\\), and — worse — <strong>stalls on imbalance</strong>: one overloaded expert makes every device wait at the collective. Multi-node MoE only pays off when interconnect (NVLink/InfiniBand) is fast enough that comm hides behind expert compute.",
           "kind": "pitfall"
         },
         {
@@ -395,24 +394,24 @@ registerLecture({
           "p": "V1 establishes the template: standard top-k with fine-grained (64) + shared (2) experts and a classic expert + device auxiliary loss. V2 scales to 236B and adds device-limited routing plus a <em>communication</em>-balancing loss (balancing tokens in <em>and</em> out of each device). V3 drops the aux loss in favor of the per-expert bias trick, adds a light sequence-wise balance term, and switches to sigmoid gating."
         },
         {
-          "p": "<strong>Upcycling</strong> sidesteps training from scratch: clone a dense model's FFN into $N$ experts and continue training (Komatsuzaki 2022). Qwen-MoE was upcycled from Qwen-1.8B (60 experts, top-4, 4 shared); MiniCPM-MoE from MiniCPM with ~520B extra tokens. It is cheap and reliably beats the dense base, though it can inherit the base model's ceiling."
+          "p": "<strong>Upcycling</strong> sidesteps training from scratch: clone a dense model's FFN into \\(N\\) experts and continue training (Komatsuzaki 2022). Qwen-MoE was upcycled from Qwen-1.8B (60 experts, top-4, 4 shared); MiniCPM-MoE from MiniCPM with ~520B extra tokens. It is cheap and reliably beats the dense base, though it can inherit the base model's ceiling."
         },
         {
-          "callout": "Two non-MoE pieces ship alongside DeepSeek-V3 and are easy to conflate with it: <strong>MLA</strong> (multi-head latent attention — compress K/V into a low-rank latent $c^{KV}_t$ so the KV-cache is tiny) and <strong>MTP</strong> (multi-token prediction heads for a denser training signal / speculative decoding). Orthogonal to MoE, but part of why V3 is efficient end-to-end.",
+          "callout": "Two non-MoE pieces ship alongside DeepSeek-V3 and are easy to conflate with it: <strong>MLA</strong> (multi-head latent attention — compress K/V into a low-rank latent \\(c^{KV}_t\\) so the KV-cache is tiny) and <strong>MTP</strong> (multi-token prediction heads for a denser training signal / speculative decoding). Orthogonal to MoE, but part of why V3 is efficient end-to-end.",
           "kind": "connection"
         },
         {
-          "callout": "The summary: MoEs exploit that <em>not every token needs the full model</em>. Discrete routing is genuinely hard, but top-$k$ heuristics plus balancing losses work in practice, and there is now overwhelming empirical evidence that MoEs are cost-effective — most top open models are sparse.",
+          "callout": "The summary: MoEs exploit that <em>not every token needs the full model</em>. Discrete routing is genuinely hard, but top-\\(k\\) heuristics plus balancing losses work in practice, and there is now overwhelming empirical evidence that MoEs are cost-effective — most top open models are sparse.",
           "kind": "key"
         }
       ]
     }
   ],
   "takeaways": [
-    "MoE swaps the dense FFN for $N$ experts + a top-$k$ router, decoupling parameter count (∝ N) from per-token FLOPs (∝ k): capacity without compute.",
+    "MoE swaps the dense FFN for \\(N\\) experts + a top-\\(k\\) router, decoupling parameter count (∝ N) from per-token FLOPs (∝ k): capacity without compute.",
     "It saves FLOPs, not memory — all experts stay resident, so VRAM scales with total params. The cost is comm + a heuristic objective.",
     "Token-choice top-k dominates; routing is non-differentiable, so training relies on heuristic balancing losses, not RL.",
-    "The Switch aux loss $\\alpha N\\sum_i f_i P_i$ steers toward uniform routing; the gradient flows through soft $P_i$ because the hard load $f_i$ is an argmax count.",
+    "The Switch aux loss \\(\\alpha N\\sum_i f_i P_i\\) steers toward uniform routing; the gradient flows through soft \\(P_i\\) because the hard load \\(f_i\\) is an argmax count.",
     "Capacity factor caps tokens/expert; overflow is dropped (residual only), and batch-level dropping makes MoEs nondeterministic.",
     "Stability needs an fp32 router + z-loss; the dominant systems cost is two all-to-all collectives under expert parallelism.",
     "DeepSeek's recipe — fine-grained + shared experts + aux-loss-free bias balancing — is the modern frontier template (V3: 671B total / 37B active); upcycling reuses a dense checkpoint."
@@ -463,7 +462,7 @@ registerLecture({
         "Training cost from inference cost"
       ],
       "answer": 0,
-      "explain": "Capacity scales with the number of experts $N$, but compute scales with the number activated $k$. More params at ~constant FLOPs."
+      "explain": "Capacity scales with the number of experts \\(N\\), but compute scales with the number activated \\(k\\). More params at ~constant FLOPs."
     },
     {
       "id": 2,
@@ -520,24 +519,24 @@ registerLecture({
     {
       "id": 6,
       "section": "Load balancing",
-      "q": "In the Switch balance loss $\\alpha N\\sum_i f_i P_i$, the router learns through:",
+      "q": "In the Switch balance loss \\(\\alpha N\\sum_i f_i P_i\\), the router learns through:",
       "options": [
-        "$f_i$, the hard fraction of tokens routed to expert i",
-        "$P_i$, the mean soft routing probability — since $f_i$ is a non-differentiable argmax count",
+        "\\(f_i\\), the hard fraction of tokens routed to expert i",
+        "\\(P_i\\), the mean soft routing probability — since \\(f_i\\) is a non-differentiable argmax count",
         "Both terms equally",
         "Neither; it is optimized by RL"
       ],
       "answer": 1,
-      "explain": "$f_i$ is an argmax count with zero gradient; the entire learning signal flows through the differentiable soft probability $P_i$."
+      "explain": "\\(f_i\\) is an argmax count with zero gradient; the entire learning signal flows through the differentiable soft probability \\(P_i\\)."
     },
     {
       "id": 7,
       "section": "Load balancing",
-      "q": "The term $\\sum_i f_i P_i$ (with $\\sum_i f_i=\\sum_i P_i=1$) is minimized when:",
+      "q": "The term \\(\\sum_i f_i P_i\\) (with \\(\\sum_i f_i=\\sum_i P_i=1\\)) is minimized when:",
       "options": [
         "One expert receives all tokens",
         "Exactly half the experts are unused",
-        "Load and probability are uniform across experts ($f_i=P_i=1/N$)",
+        "Load and probability are uniform across experts (\\(f_i=P_i=1/N\\))",
         "The softmax temperature goes to zero"
       ],
       "answer": 2,
@@ -554,7 +553,7 @@ registerLecture({
         "Dropped — they skip the FFN and pass through on the residual only"
       ],
       "answer": 3,
-      "explain": "Overflow tokens are dropped: the MoE layer becomes an identity (residual) for them. Higher $f_{cap}$ reduces drops at extra compute/memory."
+      "explain": "Overflow tokens are dropped: the MoE layer becomes an identity (residual) for them. Higher \\(f_{cap}\\) reduces drops at extra compute/memory."
     },
     {
       "id": 9,
@@ -572,7 +571,7 @@ registerLecture({
     {
       "id": 10,
       "section": "Stability",
-      "q": "The router z-loss $\\frac{1}{T}\\sum_x(\\log\\sum_j e^{h_j})^2$ improves stability by:",
+      "q": "The router z-loss \\(\\frac{1}{T}\\sum_x(\\log\\sum_j e^{h_j})^2\\) improves stability by:",
       "options": [
         "Balancing expert load",
         "Penalizing large router logits (the log-partition magnitude), preventing softmax blow-up and roundoff",

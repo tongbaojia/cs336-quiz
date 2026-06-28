@@ -1,5 +1,4 @@
-/* CS336 Companion lecture data. Auto-formatted; quiz answer positions
-   round-robin-balanced across A/B/C/D. Edit content here; keep it pure data. */
+/* CS336 Companion lecture data (math: \(..\)/\[..\]; $ is literal). */
 registerLecture({
   "id": 11,
   "estMinutes": 21,
@@ -10,7 +9,7 @@ registerLecture({
     "data repetition",
     "over-training"
   ],
-  "overview": "Chinchilla tells you the optimal $(N, D)$ in principle — but in practice you still have to set widths, learning rates, batch sizes, and afford the sweep. Lecture 11 is the engineering layer: <strong>μP</strong> for width-invariant hyperparameter transfer, critical batch size, <strong>WSD</strong> schedules that make the Chinchilla sweep cheap, data-constrained scaling under repetition, and why frontier labs deliberately <strong>over-train</strong> small models for inference.",
+  "overview": "Chinchilla tells you the optimal \\((N, D)\\) in principle — but in practice you still have to set widths, learning rates, batch sizes, and afford the sweep. Lecture 11 is the engineering layer: <strong>μP</strong> for width-invariant hyperparameter transfer, critical batch size, <strong>WSD</strong> schedules that make the Chinchilla sweep cheap, data-constrained scaling under repetition, and why frontier labs deliberately <strong>over-train</strong> small models for inference.",
   "sections": [
     {
       "id": "practice",
@@ -23,7 +22,7 @@ registerLecture({
           "list": [
             "Architecture hyperparameters — width, depth, aspect ratio at the target size.",
             "Optimizer hyperparameters — learning rate and batch size, which drift with scale.",
-            "Compute to fit the sweep — a naive Chinchilla fit needs full from-scratch runs, an $O(n^2)$ tax."
+            "Compute to fit the sweep — a naive Chinchilla fit needs full from-scratch runs, an \\(O(n^2)\\) tax."
           ],
           "ordered": true
         },
@@ -67,22 +66,22 @@ registerLecture({
       "title": "μP: hyperparameter transfer across width",
       "blocks": [
         {
-          "p": "The dream is <strong>scale-invariant tuning</strong>: sweep the learning rate on a cheap narrow model, then copy it to the wide one. The maximal update parameterization (μP; Yang+ 2022) makes this work by demanding that two quantities stay $\\Theta(1)$ as width $n$ grows."
+          "p": "The dream is <strong>scale-invariant tuning</strong>: sweep the learning rate on a cheap narrow model, then copy it to the wide one. The maximal update parameterization (μP; Yang+ 2022) makes this work by demanding that two quantities stay \\(\\Theta(1)\\) as width \\(n\\) grows."
         },
         {
           "list": [
-            "A1 — activations at initialization stay $\\Theta(1)$ per coordinate (so the activation norm is $\\Theta(\\sqrt{n})$).",
-            "A2 — after one gradient step, the change in each activation is also $\\Theta(1)$ (real feature learning at every width)."
+            "A1 — activations at initialization stay \\(\\Theta(1)\\) per coordinate (so the activation norm is \\(\\Theta(\\sqrt{n})\\)).",
+            "A2 — after one gradient step, the change in each activation is also \\(\\Theta(1)\\) (real feature learning at every width)."
           ]
         },
         {
-          "p": "Enforcing A1 and A2 on a deep linear net pins the init scale and the per-layer learning rate as functions of fan-in $n_{l-1}$ and fan-out $n_l$:"
+          "p": "Enforcing A1 and A2 on a deep linear net pins the init scale and the per-layer learning rate as functions of fan-in \\(n_{l-1}\\) and fan-out \\(n_l\\):"
         },
         {
           "math": "W_l \\sim \\mathcal{N}\\!\\left(0,\\; \\frac{1}{n_{l-1}}\\,\\min\\!\\left(1, \\frac{n_l}{n_{l-1}}\\right)\\right), \\qquad \\eta_l \\;\\propto\\; \\frac{1}{n_{l-1}} \\;\\;(\\text{hidden, Adam})"
         },
         {
-          "p": "Standard parameterization (SP) keeps the hidden-layer LR $\\Theta(1)$ across width. That's exactly why it breaks: as width grows, the feature-learning update and the forward activations can't both stay $\\Theta(1)$, so the optimal LR <strong>drifts</strong> and a value tuned at small width is wrong at large width."
+          "p": "Standard parameterization (SP) keeps the hidden-layer LR \\(\\Theta(1)\\) across width. That's exactly why it breaks: as width grows, the feature-learning update and the forward activations can't both stay \\(\\Theta(1)\\), so the optimal LR <strong>drifts</strong> and a value tuned at small width is wrong at large width."
         },
         {
           "table": {
@@ -180,7 +179,7 @@ registerLecture({
           "math": "\\left(\\frac{S}{S_{\\min}} - 1\\right)\\!\\left(\\frac{E}{E_{\\min}} - 1\\right) = 1, \\qquad B_{\\mathrm{crit}} = \\frac{E_{\\min}}{S_{\\min}}"
         },
         {
-          "p": "$S$ is optimizer steps (wall-clock at fixed hardware) and $E$ is examples processed (compute). Below $B_{\\mathrm{crit}}$ you spend near-minimal compute but many steps; above it you spend near-minimal steps but waste compute. $B_{\\mathrm{crit}}$ is the efficient frontier's knee."
+          "p": "\\(S\\) is optimizer steps (wall-clock at fixed hardware) and \\(E\\) is examples processed (compute). Below \\(B_{\\mathrm{crit}}\\) you spend near-minimal compute but many steps; above it you spend near-minimal steps but waste compute. \\(B_{\\mathrm{crit}}\\) is the efficient frontier's knee."
         },
         {
           "callout": "Critical batch size <em>grows as the target loss falls</em> — better-trained models tolerate (and need) bigger batches. This is why batch-size warmup schedules help, and it's good news for data parallelism: the more you scale, the more parallel batch you can usefully consume.",
@@ -196,7 +195,7 @@ registerLecture({
       "title": "WSD schedules: cheap Chinchilla sweeps",
       "blocks": [
         {
-          "p": "Here's the hidden cost of Chinchilla: to fit a scaling law honestly you must train each grid point <em>from scratch</em> — you can't just early-stop one long run, because a cosine schedule's loss at step $t$ isn't the loss of a model <em>scheduled</em> to stop at $t$. That turns an $O(n)$ sweep into $O(n^2)$."
+          "p": "Here's the hidden cost of Chinchilla: to fit a scaling law honestly you must train each grid point <em>from scratch</em> — you can't just early-stop one long run, because a cosine schedule's loss at step \\(t\\) isn't the loss of a model <em>scheduled</em> to stop at \\(t\\). That turns an \\(O(n)\\) sweep into \\(O(n^2)\\)."
         },
         {
           "p": "The <strong>WSD</strong> (warmup–stable–decay) schedule, from MiniCPM, fixes this. Replace cosine with three phases: a short warmup, a long <em>stable</em> phase at high constant LR, and a short <em>decay</em> phase (~10% of steps) where LR drops and loss falls rapidly."
@@ -206,7 +205,7 @@ registerLecture({
           "lang": "python"
         },
         {
-          "callout": "Because the stable phase holds LR constant, you can <strong>branch</strong> a single backbone run at many points and only pay the short decay to materialize each scaling-law data point. One long run + cheap decays replaces dozens of from-scratch runs — the $O(n^2)$ sweep collapses toward $O(n)$.",
+          "callout": "Because the stable phase holds LR constant, you can <strong>branch</strong> a single backbone run at many points and only pay the short decay to materialize each scaling-law data point. One long run + cheap decays replaces dozens of from-scratch runs — the \\(O(n^2)\\) sweep collapses toward \\(O(n)\\).",
           "kind": "insight"
         },
         {
@@ -232,7 +231,7 @@ registerLecture({
           "math": "D' = U_D + U_D\\,R_D^{*}\\left(1 - e^{-R_D / R_D^{*}}\\right), \\qquad R_D^{*} \\approx 15"
         },
         {
-          "p": "Here $U_D$ is unique tokens, $R_D$ the number of repetitions, and $D'$ the <em>effective</em> data that goes into the Chinchilla formula. As $R_D \\to \\infty$, $D'$ saturates at $U_D(1+R_D^{*})$ — a hard ceiling on what a fixed corpus can buy, no matter how long you train."
+          "p": "Here \\(U_D\\) is unique tokens, \\(R_D\\) the number of repetitions, and $D'$ the <em>effective</em> data that goes into the Chinchilla formula. As \\(R_D \\to \\infty\\), $D'$ saturates at \\(U_D(1+R_D^{*})\\) — a hard ceiling on what a fixed corpus can buy, no matter how long you train."
         },
         {
           "table": {
@@ -277,7 +276,7 @@ registerLecture({
           "math": "C_{\\text{total}} \\approx \\underbrace{6 N D}_{\\text{train}} + \\underbrace{2 N D_{\\text{inf}}}_{\\text{inference}}"
         },
         {
-          "p": "As expected inference volume $D_{\\text{inf}}$ grows, the cost-optimal point shifts to <strong>smaller $N$, larger $D$</strong> — you accept a worse training-compute deal to get a cheaper-to-serve model at the same quality (Sardana &amp; Frankle 2023). That is exactly the trend across frontier releases:"
+          "p": "As expected inference volume \\(D_{\\text{inf}}\\) grows, the cost-optimal point shifts to <strong>smaller \\(N\\), larger \\(D\\)</strong> — you accept a worse training-compute deal to get a cheaper-to-serve model at the same quality (Sardana &amp; Frankle 2023). That is exactly the trend across frontier releases:"
         },
         {
           "table": {
@@ -325,11 +324,11 @@ registerLecture({
     }
   ],
   "takeaways": [
-    "μP enforces $\\Theta(1)$ activations and updates across width, so the optimal LR is width-invariant — tune on a narrow proxy and μTransfer to the wide model.",
-    "SP breaks because its $\\Theta(1)$ hidden LR lets activations/updates drift with width; μP rescales init and LR ($\\eta\\propto 1/\\text{width}$ for Adam) to fix it.",
+    "μP enforces \\(\\Theta(1)\\) activations and updates across width, so the optimal LR is width-invariant — tune on a narrow proxy and μTransfer to the wide model.",
+    "SP breaks because its \\(\\Theta(1)\\) hidden LR lets activations/updates drift with width; μP rescales init and LR (\\(\\eta\\propto 1/\\text{width}\\) for Adam) to fix it.",
     "μP only covers width: SwiGLU and batch size transfer, but RMSNorm learnable gains and strong weight decay break it.",
-    "Critical batch size (McCandlish 2018) = $E_{\\min}/S_{\\min}$; it grows as loss falls, so larger, better-trained models usefully absorb bigger batches.",
-    "WSD (warmup–stable–decay) lets you branch one stable backbone and pay only short decays per scaling point — collapsing the $O(n^2)$ Chinchilla sweep.",
+    "Critical batch size (McCandlish 2018) = \\(E_{\\min}/S_{\\min}\\); it grows as loss falls, so larger, better-trained models usefully absorb bigger batches.",
+    "WSD (warmup–stable–decay) lets you branch one stable backbone and pay only short decays per scaling point — collapsing the \\(O(n^2)\\) Chinchilla sweep.",
     "Data-constrained scaling (Muennighoff 2023): repeating up to ~4 epochs ≈ fresh tokens; effective data $D'$ saturates, so use $D'$ not raw tokens past one epoch.",
     "Over-train small models when inference dominates — Llama-3 8B at ~1875 tokens/param is rational once you minimize total (train + inference) cost."
   ],
@@ -387,12 +386,12 @@ registerLecture({
       "q": "Why does standard parameterization (SP) break as width grows?",
       "options": [
         "It uses too little memory",
-        "Its $\\Theta(1)$ hidden LR can't keep activations and the feature-learning update both $\\Theta(1)$, so the optimal LR drifts with width",
+        "Its \\(\\Theta(1)\\) hidden LR can't keep activations and the feature-learning update both \\(\\Theta(1)\\), so the optimal LR drifts with width",
         "It can only train shallow nets",
         "It forbids the Adam optimizer"
       ],
       "answer": 1,
-      "explain": "Under SP the optimal LR drifts with width because forward activations and the update can't both stay $\\Theta(1)$ — so a small-width LR is wrong at large width."
+      "explain": "Under SP the optimal LR drifts with width because forward activations and the update can't both stay \\(\\Theta(1)\\) — so a small-width LR is wrong at large width."
     },
     {
       "id": 3,
@@ -401,24 +400,24 @@ registerLecture({
       "options": [
         "Loss is convex; gradients are bounded",
         "Weights are orthogonal; biases are zero",
-        "Activations are $\\Theta(1)$ at init (A1) and the change in activation after one step is $\\Theta(1)$ (A2)",
+        "Activations are \\(\\Theta(1)\\) at init (A1) and the change in activation after one step is \\(\\Theta(1)\\) (A2)",
         "Batch size equals width; depth is fixed"
       ],
       "answer": 2,
-      "explain": "A1: activations $\\Theta(1)$ at init; A2: post-step activation change $\\Theta(1)$ — real feature learning at every width."
+      "explain": "A1: activations \\(\\Theta(1)\\) at init; A2: post-step activation change \\(\\Theta(1)\\) — real feature learning at every width."
     },
     {
       "id": 4,
       "section": "muP",
-      "q": "Under μP with Adam, the hidden-layer learning rate scales with width $n$ as:",
+      "q": "Under μP with Adam, the hidden-layer learning rate scales with width \\(n\\) as:",
       "options": [
-        "$\\Theta(1)$ (constant, like SP)",
-        "$\\Theta(n)$",
-        "$\\Theta(\\sqrt{n})$",
-        "$\\Theta(1/n)$"
+        "\\(\\Theta(1)\\) (constant, like SP)",
+        "\\(\\Theta(n)\\)",
+        "\\(\\Theta(\\sqrt{n})\\)",
+        "\\(\\Theta(1/n)\\)"
       ],
       "answer": 3,
-      "explain": "μP sets hidden-layer LR $\\propto 1/\\text{width}$ for Adam, versus $\\Theta(1)$ in SP."
+      "explain": "μP sets hidden-layer LR \\(\\propto 1/\\text{width}\\) for Adam, versus \\(\\Theta(1)\\) in SP."
     },
     {
       "id": 5,
@@ -439,12 +438,12 @@ registerLecture({
       "q": "The critical batch size (McCandlish 2018) is defined as:",
       "options": [
         "The largest batch that fits in GPU memory",
-        "$E_{\\min}/S_{\\min}$ — the knee of the steps-vs-examples tradeoff set by gradient noise",
+        "\\(E_{\\min}/S_{\\min}\\) — the knee of the steps-vs-examples tradeoff set by gradient noise",
         "The batch that maximizes throughput",
         "Exactly the model width"
       ],
       "answer": 1,
-      "explain": "$B_{\\mathrm{crit}}=E_{\\min}/S_{\\min}$: below it you minimize compute (many steps), above it you minimize steps (wasted compute)."
+      "explain": "\\(B_{\\mathrm{crit}}=E_{\\min}/S_{\\min}\\): below it you minimize compute (many steps), above it you minimize steps (wasted compute)."
     },
     {
       "id": 7,
@@ -467,10 +466,10 @@ registerLecture({
         "Cosine schedules are non-differentiable",
         "Early stopping deletes the checkpoint",
         "Cosine forbids warmup",
-        "Loss at step t of a long cosine run isn't the loss of a model scheduled to stop at t — honest fitting needs from-scratch runs, making the sweep $O(n^2)$"
+        "Loss at step t of a long cosine run isn't the loss of a model scheduled to stop at t — honest fitting needs from-scratch runs, making the sweep \\(O(n^2)\\)"
       ],
       "answer": 3,
-      "explain": "A scaling point requires a model whose LR schedule was sized to that horizon; cosine ties decay to a fixed length, so you'd need a fresh run per point — the $O(n^2)$ cost WSD avoids."
+      "explain": "A scaling point requires a model whose LR schedule was sized to that horizon; cosine ties decay to a fixed length, so you'd need a fresh run per point — the \\(O(n^2)\\) cost WSD avoids."
     },
     {
       "id": 9,
@@ -501,11 +500,11 @@ registerLecture({
     {
       "id": 11,
       "section": "Data",
-      "q": "In the data-constrained law, effective data $D'$ as repetitions $R_D \\to \\infty$:",
+      "q": "In the data-constrained law, effective data $D'$ as repetitions \\(R_D \\to \\infty\\):",
       "options": [
         "Grows without bound",
         "Goes to zero",
-        "Saturates at a finite ceiling $U_D(1+R_D^{*})$",
+        "Saturates at a finite ceiling \\(U_D(1+R_D^{*})\\)",
         "Equals the parameter count"
       ],
       "answer": 2,
@@ -540,7 +539,7 @@ registerLecture({
     {
       "id": 14,
       "section": "Over-train",
-      "q": "In $C_{\\text{total}} \\approx 6ND + 2N D_{\\text{inf}}$, increasing expected inference volume $D_{\\text{inf}}$ moves the cost-optimal model toward:",
+      "q": "In \\(C_{\\text{total}} \\approx 6ND + 2N D_{\\text{inf}}\\), increasing expected inference volume \\(D_{\\text{inf}}\\) moves the cost-optimal model toward:",
       "options": [
         "Larger N, fewer tokens",
         "Smaller N, more tokens (over-trained)",

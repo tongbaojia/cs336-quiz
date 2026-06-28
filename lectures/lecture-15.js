@@ -1,5 +1,4 @@
-/* CS336 Companion lecture data. Auto-formatted; quiz answer positions
-   round-robin-balanced across A/B/C/D. Edit content here; keep it pure data. */
+/* CS336 Companion lecture data (math: \(..\)/\[..\]; $ is literal). */
 registerLecture({
   "id": 15,
   "estMinutes": 19,
@@ -20,7 +19,7 @@ registerLecture({
           "p": "Pretraining maximizes likelihood of web text, giving a model that <em>continues</em> documents — not one that <em>follows instructions</em> or respects safety constraints. The goal of alignment is tighter, more reliable control over outputs. The standard pipeline (InstructGPT, Ouyang et al. 2022) is two stages: <strong>imitation</strong> (supervised finetuning, SFT) followed by <strong>reinforcement</strong> (RLHF)."
         },
         {
-          "p": "SFT is just MLE on curated $(x, y)$ demonstration pairs: maximize the log-likelihood of the response $y$ given the prompt $x$, with the loss masked to the response tokens only (the prompt is conditioning, not a target)."
+          "p": "SFT is just MLE on curated \\((x, y)\\) demonstration pairs: maximize the log-likelihood of the response \\(y\\) given the prompt \\(x\\), with the loss masked to the response tokens only (the prompt is conditioning, not a target)."
         },
         {
           "math": "\\mathcal{L}_{\\mathrm{SFT}}(\\theta) \\;=\\; -\\,\\mathbb{E}_{(x,y)\\sim\\mathcal{D}}\\!\\left[\\,\\sum_{t=1}^{|y|}\\log \\pi_\\theta\\!\\left(y_t \\mid x,\\, y_{<t}\\right)\\right]"
@@ -101,7 +100,7 @@ registerLecture({
       "title": "Why reinforce at all: imitation vs. optimization",
       "blocks": [
         {
-          "p": "SFT is pure imitation: fit $\\hat{p}(y\\mid x) \\approx p^{*}(y\\mid x)$ for some reference policy $p^{*}$. That requires <em>samples from</em> $p^{*}$ (expensive expert demonstrations) and faithfully clones its mistakes — you can never exceed the demonstrator. RLHF instead treats the LM as a <strong>policy</strong> and maximizes a measurable reward."
+          "p": "SFT is pure imitation: fit \\(\\hat{p}(y\\mid x) \\approx p^{*}(y\\mid x)\\) for some reference policy \\(p^{*}\\). That requires <em>samples from</em> \\(p^{*}\\) (expensive expert demonstrations) and faithfully clones its mistakes — you can never exceed the demonstrator. RLHF instead treats the LM as a <strong>policy</strong> and maximizes a measurable reward."
         },
         {
           "table": {
@@ -114,7 +113,7 @@ registerLecture({
               [
                 "Objective",
                 "match a reference distribution",
-                "maximize $\\mathbb{E}_{\\pi}[R(x,y)]$"
+                "maximize \\(\\mathbb{E}_{\\pi}[R(x,y)]\\)"
               ],
               [
                 "Supervision",
@@ -155,7 +154,7 @@ registerLecture({
       "title": "Reward modeling: Bradley-Terry + a KL leash",
       "blocks": [
         {
-          "p": "Collect pairwise preferences: for a prompt $x$, an annotator marks a winner $y_w$ and loser $y_l$. Fit a reward model $r_\\phi$ under the <strong>Bradley-Terry</strong> choice model, where the probability one response beats another is a sigmoid of their reward difference:"
+          "p": "Collect pairwise preferences: for a prompt \\(x\\), an annotator marks a winner \\(y_w\\) and loser \\(y_l\\). Fit a reward model \\(r_\\phi\\) under the <strong>Bradley-Terry</strong> choice model, where the probability one response beats another is a sigmoid of their reward difference:"
         },
         {
           "math": "P\\!\\left(y_w \\succ y_l \\mid x\\right) \\;=\\; \\sigma\\!\\left(r(x,y_w)-r(x,y_l)\\right) \\;=\\; \\frac{1}{1+\\exp\\!\\left(-\\left(r(x,y_w)-r(x,y_l)\\right)\\right)}"
@@ -167,13 +166,13 @@ registerLecture({
           "math": "\\mathcal{L}_{\\mathrm{RM}}(\\phi) \\;=\\; -\\,\\mathbb{E}_{(x,\\,y_w,\\,y_l)\\sim\\mathcal{D}}\\!\\left[\\log \\sigma\\!\\left(r_\\phi(x,y_w)-r_\\phi(x,y_l)\\right)\\right]"
         },
         {
-          "p": "Now optimize the policy against $r_\\phi$. But $r_\\phi$ is only trustworthy near the data it was trained on; unconstrained maximization drifts off-distribution and the reward becomes meaningless. The fix is a <strong>KL penalty</strong> to the (frozen) SFT reference policy, giving the canonical KL-regularized RLHF objective:"
+          "p": "Now optimize the policy against \\(r_\\phi\\). But \\(r_\\phi\\) is only trustworthy near the data it was trained on; unconstrained maximization drifts off-distribution and the reward becomes meaningless. The fix is a <strong>KL penalty</strong> to the (frozen) SFT reference policy, giving the canonical KL-regularized RLHF objective:"
         },
         {
           "math": "\\max_{\\pi_\\theta}\\;\\; \\mathbb{E}_{x\\sim\\mathcal{D},\\; y\\sim\\pi_\\theta(\\cdot\\mid x)}\\!\\left[\\,r_\\phi(x,y)\\,\\right] \\;-\\; \\beta\\,\\mathbb{D}_{\\mathrm{KL}}\\!\\left(\\pi_\\theta(\\cdot\\mid x)\\;\\|\\;\\pi_{\\mathrm{ref}}(\\cdot\\mid x)\\right)"
         },
         {
-          "callout": "$\\beta$ is the leash. Too small and the policy reward-hacks and mode-collapses off into nonsense the RM scores highly; too large and it never moves off the SFT policy. The KL term keeps the policy in the region where $r_\\phi$ is still a faithful proxy for human preference.",
+          "callout": "\\(\\beta\\) is the leash. Too small and the policy reward-hacks and mode-collapses off into nonsense the RM scores highly; too large and it never moves off the SFT policy. The KL term keeps the policy in the region where \\(r_\\phi\\) is still a faithful proxy for human preference.",
           "kind": "key"
         }
       ]
@@ -183,7 +182,7 @@ registerLecture({
       "title": "PPO: optimizing the objective on-policy",
       "blocks": [
         {
-          "p": "Maximizing $\\mathbb{E}_{\\pi_\\theta}[r_\\phi]$ is on-policy RL. The lineage: vanilla policy gradients are unbiased but high-variance; TRPO linearizes within a trust region; PPO (Schulman et al. 2017) approximates the trust region cheaply by <strong>clipping the importance ratio</strong>."
+          "p": "Maximizing \\(\\mathbb{E}_{\\pi_\\theta}[r_\\phi]\\) is on-policy RL. The lineage: vanilla policy gradients are unbiased but high-variance; TRPO linearizes within a trust region; PPO (Schulman et al. 2017) approximates the trust region cheaply by <strong>clipping the importance ratio</strong>."
         },
         {
           "math": "\\nabla_\\theta\\,\\mathbb{E}_{z\\sim\\pi_\\theta}\\!\\left[R(z)\\right] \\;=\\; \\mathbb{E}_{z\\sim\\pi_\\theta}\\!\\left[\\,R(z)\\,\\nabla_\\theta \\log \\pi_\\theta(z)\\,\\right]"
@@ -192,7 +191,7 @@ registerLecture({
           "math": "\\mathcal{L}_{\\mathrm{PPO}}(\\theta) = \\mathbb{E}_t\\!\\left[\\min\\!\\left(\\rho_t\\,\\hat{A}_t,\\; \\mathrm{clip}\\!\\left(\\rho_t,\\,1-\\epsilon,\\,1+\\epsilon\\right)\\hat{A}_t\\right)\\right], \\quad \\rho_t = \\frac{\\pi_\\theta(a_t\\mid s_t)}{\\pi_{\\theta_{\\mathrm{old}}}(a_t\\mid s_t)}"
         },
         {
-          "p": "In the LM setting this is effectively a <em>bandit</em>: a single dense reward at the final token. In practice you add a <strong>per-token KL penalty</strong> to the reward (clipped where the new policy's log-prob falls below the reference, for stability) and estimate advantages with GAE — where $\\gamma=\\lambda=1$ recovers reward-to-go minus a value baseline. InstructGPT stitches this together as SFT $\\rightarrow$ RM $\\rightarrow$ PPO, with the headline result that a <strong>1.3B</strong> InstructGPT was preferred to the <strong>175B</strong> GPT-3."
+          "p": "In the LM setting this is effectively a <em>bandit</em>: a single dense reward at the final token. In practice you add a <strong>per-token KL penalty</strong> to the reward (clipped where the new policy's log-prob falls below the reference, for stability) and estimate advantages with GAE — where \\(\\gamma=\\lambda=1\\) recovers reward-to-go minus a value baseline. InstructGPT stitches this together as SFT \\(\\rightarrow\\) RM \\(\\rightarrow\\) PPO, with the headline result that a <strong>1.3B</strong> InstructGPT was preferred to the <strong>175B</strong> GPT-3."
         },
         {
           "callout": "PPO is notoriously finicky: a separate value network (extra memory + its own tuning), plus reward/KL/clip/advantage knobs that interact. That operational pain is exactly what motivates DPO (next) and, for verifiable domains, GRPO (Lecture 16).",
@@ -211,7 +210,7 @@ registerLecture({
           "math": "\\pi^{\\star}(y\\mid x) = \\frac{1}{Z(x)}\\,\\pi_{\\mathrm{ref}}(y\\mid x)\\,\\exp\\!\\left(\\tfrac{1}{\\beta}\\,r(x,y)\\right) \\;\\;\\Longrightarrow\\;\\; r(x,y) = \\beta\\log\\frac{\\pi^{\\star}(y\\mid x)}{\\pi_{\\mathrm{ref}}(y\\mid x)} + \\beta\\log Z(x)"
         },
         {
-          "p": "Substitute this 'implied reward' into the Bradley-Terry NLL. The intractable partition function $Z(x)$ cancels in the <em>difference</em> $r(x,y_w)-r(x,y_l)$, leaving a purely supervised loss on preference pairs — no sampling, no RM:"
+          "p": "Substitute this 'implied reward' into the Bradley-Terry NLL. The intractable partition function \\(Z(x)\\) cancels in the <em>difference</em> \\(r(x,y_w)-r(x,y_l)\\), leaving a purely supervised loss on preference pairs — no sampling, no RM:"
         },
         {
           "math": "\\mathcal{L}_{\\mathrm{DPO}} = -\\,\\mathbb{E}_{(x,y_w,y_l)}\\!\\left[\\log\\sigma\\!\\left(\\beta\\log\\frac{\\pi_\\theta(y_w\\mid x)}{\\pi_{\\mathrm{ref}}(y_w\\mid x)} - \\beta\\log\\frac{\\pi_\\theta(y_l\\mid x)}{\\pi_{\\mathrm{ref}}(y_l\\mid x)}\\right)\\right]"
@@ -234,7 +233,7 @@ registerLecture({
           "p": "RLHF optimizes a <em>proxy</em>, and proxies obey Goodhart's law: once a measure becomes a target, it stops being a good measure. The reward model is a learned, imperfect stand-in for human preference, so pushing it hard eventually decouples reward from true quality."
         },
         {
-          "callout": "<strong>Reward hacking / over-optimization.</strong> As you optimize $r_\\phi$, gold human quality rises then <em>falls</em> — the policy finds inputs the RM over-scores. Gao et al. (2023) fit scaling laws for this: the gap grows with optimization (measured in KL) and shrinks with RM size/data. It holds for human and noisy-LM preferences, but not for a noiseless oracle — confirming the culprit is RM <em>error</em>.",
+          "callout": "<strong>Reward hacking / over-optimization.</strong> As you optimize \\(r_\\phi\\), gold human quality rises then <em>falls</em> — the policy finds inputs the RM over-scores. Gao et al. (2023) fit scaling laws for this: the gap grows with optimization (measured in KL) and shrinks with RM size/data. It holds for human and noisy-LM preferences, but not for a noiseless oracle — confirming the culprit is RM <em>error</em>.",
           "kind": "pitfall"
         },
         {
@@ -258,9 +257,9 @@ registerLecture({
     "Alignment = imitation then reinforcement: SFT surfaces latent abilities (LIMA: ~1k good examples suffice), RLHF optimizes for human preference.",
     "SFT is MLE on (prompt, response) pairs; finetuning on knowledge the base model lacks teaches hallucination, so extract rather than inject.",
     "RL beats pure imitation because judging is cheaper and higher-signal than demonstrating (generation-verification gap), and the policy can exceed its demonstrators.",
-    "RLHF core: Bradley-Terry reward model $P(y_w\\succ y_l)=\\sigma(r_w-r_l)$, then maximize $\\mathbb{E}_\\pi[r_\\phi]-\\beta\\,\\mathrm{KL}(\\pi\\,\\|\\,\\pi_{\\mathrm{ref}})$.",
+    "RLHF core: Bradley-Terry reward model \\(P(y_w\\succ y_l)=\\sigma(r_w-r_l)\\), then maximize \\(\\mathbb{E}_\\pi[r_\\phi]-\\beta\\,\\mathrm{KL}(\\pi\\,\\|\\,\\pi_{\\mathrm{ref}})\\).",
     "PPO clips the policy ratio for a cheap trust region; InstructGPT's 1.3B beat 175B GPT-3 on preference — alignment buys more than scale here.",
-    "DPO reparametrizes reward as $\\beta\\log(\\pi_\\theta/\\pi_{\\mathrm{ref}})$ so $Z(x)$ cancels — RLHF as a supervised pairwise loss, no RM or rollouts.",
+    "DPO reparametrizes reward as \\(\\beta\\log(\\pi_\\theta/\\pi_{\\mathrm{ref}})\\) so \\(Z(x)\\) cancels — RLHF as a supervised pairwise loss, no RM or rollouts.",
     "Over-optimizing a learned reward is Goodhart: gold quality eventually drops and the model mode-collapses; the KL leash, early stopping, and RM ensembles are the guards."
   ],
   "references": [
@@ -297,10 +296,10 @@ registerLecture({
     {
       "id": 1,
       "section": "SFT",
-      "q": "The SFT objective on a (prompt $x$, response $y$) pair is:",
+      "q": "The SFT objective on a (prompt \\(x\\), response \\(y\\)) pair is:",
       "options": [
-        "Maximize $\\log p(y\\mid x)$, with loss masked to the response tokens",
-        "Maximize $p(x\\mid y)$ over the prompt tokens",
+        "Maximize \\(\\log p(y\\mid x)\\), with loss masked to the response tokens",
+        "Maximize \\(p(x\\mid y)\\) over the prompt tokens",
         "Minimize KL to a reward model",
         "Maximize a Bradley-Terry preference likelihood"
       ],
@@ -375,12 +374,12 @@ registerLecture({
     {
       "id": 7,
       "section": "Reward model",
-      "q": "Under Bradley-Terry, $P(y_w\\succ y_l\\mid x)$ equals:",
+      "q": "Under Bradley-Terry, \\(P(y_w\\succ y_l\\mid x)\\) equals:",
       "options": [
-        "$r(x,y_w)-r(x,y_l)$",
-        "$\\mathrm{softmax}$ over the vocabulary",
-        "$\\sigma(r(x,y_w)-r(x,y_l))$",
-        "$\\exp(r(x,y_w))$"
+        "\\(r(x,y_w)-r(x,y_l)\\)",
+        "\\(\\mathrm{softmax}\\) over the vocabulary",
+        "\\(\\sigma(r(x,y_w)-r(x,y_l))\\)",
+        "\\(\\exp(r(x,y_w))\\)"
       ],
       "answer": 2,
       "explain": "Bradley-Terry models choice as a sigmoid of the reward difference; its MLE is a logistic loss on pairs."
@@ -388,7 +387,7 @@ registerLecture({
     {
       "id": 8,
       "section": "Reward model",
-      "q": "In the KL-regularized RLHF objective, the role of the $\\beta\\,\\mathrm{KL}(\\pi_\\theta\\,\\|\\,\\pi_{\\mathrm{ref}})$ term is to:",
+      "q": "In the KL-regularized RLHF objective, the role of the \\(\\beta\\,\\mathrm{KL}(\\pi_\\theta\\,\\|\\,\\pi_{\\mathrm{ref}})\\) term is to:",
       "options": [
         "Increase reward magnitude",
         "Replace the value network",
@@ -396,14 +395,14 @@ registerLecture({
         "Keep the policy near the reference so the reward model stays a valid proxy"
       ],
       "answer": 3,
-      "explain": "The RM is only trustworthy on-distribution; the KL leash prevents drift into regions where $r_\\phi$ is meaningless."
+      "explain": "The RM is only trustworthy on-distribution; the KL leash prevents drift into regions where \\(r_\\phi\\) is meaningless."
     },
     {
       "id": 9,
       "section": "PPO",
       "q": "PPO's clipped objective primarily provides:",
       "options": [
-        "A cheap approximate trust region by clipping the importance ratio $\\rho_t$ to $[1-\\epsilon,1+\\epsilon]$",
+        "A cheap approximate trust region by clipping the importance ratio \\(\\rho_t\\) to \\([1-\\epsilon,1+\\epsilon]\\)",
         "An exact second-order trust region",
         "A reward model",
         "Token-level supervised labels"
@@ -448,20 +447,20 @@ registerLecture({
         "The explicit reward model and the on-policy rollouts"
       ],
       "answer": 3,
-      "explain": "DPO reparametrizes reward via the policy, turning RLHF into a supervised pairwise loss — no RM, no rollouts (KL is implicit via $\\beta$ and $\\pi_{\\mathrm{ref}}$)."
+      "explain": "DPO reparametrizes reward via the policy, turning RLHF into a supervised pairwise loss — no RM, no rollouts (KL is implicit via \\(\\beta\\) and \\(\\pi_{\\mathrm{ref}}\\))."
     },
     {
       "id": 13,
       "section": "DPO",
-      "q": "In DPO the intractable partition function $Z(x)$ is handled by:",
+      "q": "In DPO the intractable partition function \\(Z(x)\\) is handled by:",
       "options": [
-        "Cancelling in the reward difference $r(x,y_w)-r(x,y_l)$",
+        "Cancelling in the reward difference \\(r(x,y_w)-r(x,y_l)\\)",
         "Estimating it with importance sampling",
         "Setting it to 1",
         "Learning it with a small MLP"
       ],
       "answer": 0,
-      "explain": "The implied reward is $\\beta\\log(\\pi/\\pi_{\\mathrm{ref}})+\\beta\\log Z$; the $\\log Z$ term is identical for $y_w,y_l$ and cancels in the pairwise difference."
+      "explain": "The implied reward is \\(\\beta\\log(\\pi/\\pi_{\\mathrm{ref}})+\\beta\\log Z\\); the \\(\\log Z\\) term is identical for \\(y_w,y_l\\) and cancels in the pairwise difference."
     },
     {
       "id": 14,

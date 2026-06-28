@@ -38,7 +38,7 @@
       return `<div class="b-code"><div class="lang">${esc(lang)}</div><pre>${esc(b.code)}</pre></div>`;
     }
     if (b.math != null) {
-      return `<div class="b-math">$$${b.math}$$</div>`;
+      return `<div class="b-math">\\[${b.math}\\]</div>`;
     }
     if (b.table != null) {
       const head = (b.table.head || []).map(h => `<th>${h}</th>`).join("");

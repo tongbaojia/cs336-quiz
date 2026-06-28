@@ -1,5 +1,4 @@
-/* CS336 Companion lecture data. Auto-formatted; quiz answer positions
-   round-robin-balanced across A/B/C/D. Edit content here; keep it pure data. */
+/* CS336 Companion lecture data (math: \(..\)/\[..\]; $ is literal). */
 registerLecture({
   "id": 9,
   "estMinutes": 20,
@@ -54,25 +53,25 @@ registerLecture({
           "math": "L(X) = L_{\\infty} + \\left(\\frac{X_0}{X}\\right)^{\\alpha}"
         },
         {
-          "p": "Here $X$ is the resource (data $D$, params $N$, or compute $C$), $\\alpha$ is the scaling exponent (the log–log slope), and $L_{\\infty}$ is the <strong>irreducible loss</strong> — the entropy of the data the model can never beat. Ignore $L_{\\infty}$ and you read a too-optimistic slope from the high-resource tail."
+          "p": "Here \\(X\\) is the resource (data \\(D\\), params \\(N\\), or compute \\(C\\)), \\(\\alpha\\) is the scaling exponent (the log–log slope), and \\(L_{\\infty}\\) is the <strong>irreducible loss</strong> — the entropy of the data the model can never beat. Ignore \\(L_{\\infty}\\) and you read a too-optimistic slope from the high-resource tail."
         },
         {
           "h": "Why a power law? Estimation error decays polynomially"
         },
         {
-          "p": "The conceptual anchor: error from finite samples decays like $1/n^{\\alpha}$. The toy case is estimating a mean from $n$ Gaussian samples:"
+          "p": "The conceptual anchor: error from finite samples decays like \\(1/n^{\\alpha}\\). The toy case is estimating a mean from \\(n\\) Gaussian samples:"
         },
         {
           "math": "\\mathbb{E}\\big[(\\hat{\\mu}-\\mu)^2\\big] = \\frac{\\sigma^2}{n} \\quad\\Longrightarrow\\quad \\log \\mathrm{Error} = -\\log n + 2\\log\\sigma"
         },
         {
-          "p": "That is already a scaling law with slope $-1$. Most classical estimators (regression, etc.) share this $1/n$ rate, predicting a log–log slope of exactly $-1$. But measured neural exponents are <em>much smaller</em> (slopes like $-0.05$ to $-0.1$) — so something else sets them."
+          "p": "That is already a scaling law with slope \\(-1\\). Most classical estimators (regression, etc.) share this \\(1/n\\) rate, predicting a log–log slope of exactly \\(-1\\). But measured neural exponents are <em>much smaller</em> (slopes like \\(-0.05\\) to \\(-0.1\\)) — so something else sets them."
         },
         {
-          "p": "The flexibility story: a nonparametric estimator tiling $d$-dimensional input space gives $\\mathrm{Error} \\approx n^{-1/d}$, i.e. slope $-1/d$. Bahri+ 2021 argues the small neural exponent reflects the data's <strong>intrinsic dimension</strong> — though intrinsic-dimension estimators are sketchy, so treat this as intuition, not proof."
+          "p": "The flexibility story: a nonparametric estimator tiling \\(d\\)-dimensional input space gives \\(\\mathrm{Error} \\approx n^{-1/d}\\), i.e. slope \\(-1/d\\). Bahri+ 2021 argues the small neural exponent reflects the data's <strong>intrinsic dimension</strong> — though intrinsic-dimension estimators are sketchy, so treat this as intuition, not proof."
         },
         {
-          "callout": "Composition shifts the <em>offset</em>, not the slope. Distribution-shift scaling laws (Kaplan+ 2021; Hashimoto 2021) find that changing the data mix moves $L_{\\infty}$ and the intercept while the exponent stays put — which is exactly why diverse data collection matters.",
+          "callout": "Composition shifts the <em>offset</em>, not the slope. Distribution-shift scaling laws (Kaplan+ 2021; Hashimoto 2021) find that changing the data mix moves \\(L_{\\infty}\\) and the intercept while the exponent stays put — which is exactly why diverse data collection matters.",
           "kind": "connection"
         }
       ]
@@ -111,7 +110,7 @@ registerLecture({
           }
         },
         {
-          "callout": "Not all parameters scale alike. <strong>Embedding</strong> parameters behave differently from the rest, so count non-embedding params when you fit $L(N)$ — mixing them in distorts the exponent (and matters again for MoE).",
+          "callout": "Not all parameters scale alike. <strong>Embedding</strong> parameters behave differently from the rest, so count non-embedding params when you fit \\(L(N)\\) — mixing them in distorts the exponent (and matters again for MoE).",
           "kind": "pitfall"
         },
         {
@@ -137,13 +136,13 @@ registerLecture({
           "math": "C \\approx 6ND"
         },
         {
-          "p": "Joint data–model fits (Rosenfeld+ 2020: $\\mathrm{Error} = N^{-\\alpha} + D^{-\\beta} + C$; Kaplan's variant) describe loss over the $(N, D)$ grid. Substituting $D = C/6N$ and minimizing over $N$ at fixed $C$ gives a compute-optimal frontier:"
+          "p": "Joint data–model fits (Rosenfeld+ 2020: \\(\\mathrm{Error} = N^{-\\alpha} + D^{-\\beta} + C\\); Kaplan's variant) describe loss over the \\((N, D)\\) grid. Substituting \\(D = C/6N\\) and minimizing over \\(N\\) at fixed \\(C\\) gives a compute-optimal frontier:"
         },
         {
           "math": "N^{*} \\propto C^{a}, \\quad D^{*} \\propto C^{b}, \\qquad a \\approx b \\approx 0.5 \\;\\Rightarrow\\; D^{*} \\approx 20\\,N^{*}"
         },
         {
-          "p": "Kaplan+ 2020 and Hoffmann+ 2022 (Chinchilla) disagreed on the exponents. Kaplan recommended pouring compute mostly into <strong>model size</strong> ($a\\approx0.73$); Chinchilla showed you should grow $N$ and $D$ <strong>together</strong> ($a\\approx b\\approx0.5$). Kaplan systematically <em>under-weighted data</em> and trained models too big for their token budgets."
+          "p": "Kaplan+ 2020 and Hoffmann+ 2022 (Chinchilla) disagreed on the exponents. Kaplan recommended pouring compute mostly into <strong>model size</strong> (\\(a\\approx0.73\\)); Chinchilla showed you should grow \\(N\\) and \\(D\\) <strong>together</strong> (\\(a\\approx b\\approx0.5\\)). Kaplan systematically <em>under-weighted data</em> and trained models too big for their token budgets."
         },
         {
           "table": {
@@ -181,7 +180,7 @@ registerLecture({
           "kind": "pitfall"
         },
         {
-          "callout": "Because $C \\approx 6ND$ and both $N^{*}, D^{*} \\propto C^{0.5}$, the optimal tokens-per-parameter ratio is <em>scale-invariant</em> — roughly 20 across three orders of magnitude. That constant is the single most-quoted output of the whole field.",
+          "callout": "Because \\(C \\approx 6ND\\) and both \\(N^{*}, D^{*} \\propto C^{0.5}\\), the optimal tokens-per-parameter ratio is <em>scale-invariant</em> — roughly 20 across three orders of magnitude. That constant is the single most-quoted output of the whole field.",
           "kind": "key"
         }
       ]
@@ -203,7 +202,7 @@ registerLecture({
           "h": "Method 2 — IsoFLOP profiles"
         },
         {
-          "p": "Pick several fixed FLOP budgets (IsoFLOP slices). Within a slice, $C$ is constant, so choosing $N$ fixes $D = C/6N$ — you slide along a parameters-vs-tokens tradeoff. Plot final loss vs $N$ and each slice is a <strong>convex “U”</strong>: too-small $N$ underfits; too-large $N$ starves on tokens. The bottom of each U is the compute-optimal $N$ for that budget; connecting the minima across budgets traces $N^{*}\\propto C^{a}$ and $D^{*}\\propto C^{b}$."
+          "p": "Pick several fixed FLOP budgets (IsoFLOP slices). Within a slice, \\(C\\) is constant, so choosing \\(N\\) fixes \\(D = C/6N\\) — you slide along a parameters-vs-tokens tradeoff. Plot final loss vs \\(N\\) and each slice is a <strong>convex “U”</strong>: too-small \\(N\\) underfits; too-large \\(N\\) starves on tokens. The bottom of each U is the compute-optimal \\(N\\) for that budget; connecting the minima across budgets traces \\(N^{*}\\propto C^{a}\\) and \\(D^{*}\\propto C^{b}\\)."
         },
         {
           "callout": "IsoFLOP is the most-replicated method: it's cheap (a grid of short runs), robust (each U-minimum is a direct measurement, not an extrapolation), and has been reproduced for diffusion models (Gulrajani+ 2023) and MoEs. When in doubt, profile IsoFLOPs.",
@@ -213,13 +212,13 @@ registerLecture({
           "h": "Method 3 — parametric joint fit"
         },
         {
-          "p": "Train a grid over $(N, D)$ and least-squares fit the full surface, e.g."
+          "p": "Train a grid over \\((N, D)\\) and least-squares fit the full surface, e.g."
         },
         {
           "math": "L(N, D) = E + \\frac{A}{N^{\\alpha}} + \\frac{B}{D^{\\beta}}"
         },
         {
-          "p": "Chinchilla reported $E\\approx1.69$, $A\\approx406$, $B\\approx410$, $\\alpha\\approx0.34$, $\\beta\\approx0.28$. The optimal split follows from the exponents: $a = \\beta/(\\alpha+\\beta)$, $b = \\alpha/(\\alpha+\\beta)$, both near $0.5$."
+          "p": "Chinchilla reported \\(E\\approx1.69\\), \\(A\\approx406\\), \\(B\\approx410\\), \\(\\alpha\\approx0.34\\), \\(\\beta\\approx0.28\\). The optimal split follows from the exponents: \\(a = \\beta/(\\alpha+\\beta)\\), \\(b = \\alpha/(\\alpha+\\beta)\\), both near \\(0.5\\)."
         },
         {
           "callout": "Besiroglu+ 2024 reverse-engineered Chinchilla's raw data and found the published method-3 fit was numerically off (bad Huber-loss optimization / over-tight confidence intervals). Their refit lands back near methods 1 and 2 — a reminder that a parametric scaling fit is only as trustworthy as its optimizer.",
@@ -279,7 +278,7 @@ registerLecture({
           "p": "<strong>More is different.</strong> A conclusion drawn at 100M params (which optimizer, which architecture, the FLOP split between attention and MLP) can flip at 100B. The fitted slope is only credible inside — and slightly beyond — the range you actually measured."
         },
         {
-          "callout": "Practical hygiene: fit on at least a decade of scale, always include $L_{\\infty}$, hold out the largest run to validate the extrapolation, and re-fit when you change data mix, schedule, or epoch count.",
+          "callout": "Practical hygiene: fit on at least a decade of scale, always include \\(L_{\\infty}\\), hold out the largest run to validate the extrapolation, and re-fit when you change data mix, schedule, or epoch count.",
           "kind": "note"
         }
       ]
@@ -287,10 +286,10 @@ registerLecture({
   ],
   "takeaways": [
     "Scaling laws convert an irreversible big run into a regression: train small, fit a power law, extrapolate — the core derisking tool of modern pretraining.",
-    "Loss follows $L(X)=L_{\\infty}+(X_0/X)^{\\alpha}$; always fit the irreducible floor $L_{\\infty}$ or you misread the slope.",
+    "Loss follows \\(L(X)=L_{\\infty}+(X_0/X)^{\\alpha}\\); always fit the irreducible floor \\(L_{\\infty}\\) or you misread the slope.",
     "Power laws arise from polynomially-decaying estimation error; small neural exponents likely track the data's intrinsic dimension (Bahri 2021).",
-    "Kaplan under-weighted data ($a\\approx0.73$) mainly by mis-handling the LR schedule; Chinchilla's fix gives $a\\approx b\\approx0.5$ and $D^{*}\\approx20N^{*}$.",
-    "$C\\approx6ND$ links params, tokens, and compute; with both scaling as $C^{0.5}$ the optimal tokens/param ratio is scale-invariant (≈20).",
+    "Kaplan under-weighted data (\\(a\\approx0.73\\)) mainly by mis-handling the LR schedule; Chinchilla's fix gives \\(a\\approx b\\approx0.5\\) and \\(D^{*}\\approx20N^{*}\\).",
+    "\\(C\\approx6ND\\) links params, tokens, and compute; with both scaling as \\(C^{0.5}\\) the optimal tokens/param ratio is scale-invariant (≈20).",
     "Three fitting methods — min-over-runs, IsoFLOP, parametric — should agree; IsoFLOP is the most robust, and parametric fits can be numerically fragile (Besiroglu 2024).",
     "Train-optimal ≠ deployment-optimal: over-train small models when inference dominates, and distrust extrapolation beyond your measured range."
   ],
@@ -354,7 +353,7 @@ registerLecture({
     {
       "id": 3,
       "section": "Data",
-      "q": "In $L(X)=L_{\\infty}+(X_0/X)^{\\alpha}$, the term $L_{\\infty}$ is:",
+      "q": "In \\(L(X)=L_{\\infty}+(X_0/X)^{\\alpha}\\), the term \\(L_{\\infty}\\) is:",
       "options": [
         "The learning rate floor",
         "The initialization loss before training",
@@ -362,27 +361,27 @@ registerLecture({
         "The variance of the estimator"
       ],
       "answer": 2,
-      "explain": "$L_{\\infty}$ is the irreducible floor; omitting it makes the tail slope look better than it is."
+      "explain": "\\(L_{\\infty}\\) is the irreducible floor; omitting it makes the tail slope look better than it is."
     },
     {
       "id": 4,
       "section": "Data",
-      "q": "The mean-estimation toy gives error $\\sigma^2/n$, i.e. a log–log slope of $-1$. Why are measured neural exponents much smaller?",
+      "q": "The mean-estimation toy gives error \\(\\sigma^2/n\\), i.e. a log–log slope of \\(-1\\). Why are measured neural exponents much smaller?",
       "options": [
         "Neural nets violate the central limit theorem",
         "Because of floating-point error",
         "Larger batch sizes flatten the curve",
-        "Flexible/nonparametric learning has dimension-dependent rates ($n^{-1/d}$), tied to intrinsic dimension"
+        "Flexible/nonparametric learning has dimension-dependent rates (\\(n^{-1/d}\\)), tied to intrinsic dimension"
       ],
       "answer": 3,
-      "explain": "Classical estimators scale ~1/n (slope −1); nonparametric rates are $n^{-1/d}$, and Bahri 2021 ties the small exponent to intrinsic data dimension."
+      "explain": "Classical estimators scale ~1/n (slope −1); nonparametric rates are \\(n^{-1/d}\\), and Bahri 2021 ties the small exponent to intrinsic data dimension."
     },
     {
       "id": 5,
       "section": "Data",
       "q": "Changing the training data mixture (distribution shift) primarily affects:",
       "options": [
-        "The offset / intercept (and $L_{\\infty}$), not the slope",
+        "The offset / intercept (and \\(L_{\\infty}\\)), not the slope",
         "The exponent α (the slope)",
         "Nothing measurable",
         "The batch size only"
@@ -393,7 +392,7 @@ registerLecture({
     {
       "id": 6,
       "section": "Compute",
-      "q": "The identity $C\\approx 6ND$ counts:",
+      "q": "The identity \\(C\\approx 6ND\\) counts:",
       "options": [
         "Only inference FLOPs",
         "Forward+backward FLOPs per parameter per token (2 fwd + 4 bwd)",
@@ -406,7 +405,7 @@ registerLecture({
     {
       "id": 7,
       "section": "Compute",
-      "q": "Chinchilla's compute-optimal exponents in $N^{*}\\propto C^{a}$, $D^{*}\\propto C^{b}$ are approximately:",
+      "q": "Chinchilla's compute-optimal exponents in \\(N^{*}\\propto C^{a}\\), \\(D^{*}\\propto C^{b}\\) are approximately:",
       "options": [
         "a≈0.73, b≈0.27",
         "a≈1, b≈0",
@@ -434,13 +433,13 @@ registerLecture({
       "section": "Compute",
       "q": "The Chinchilla rule of thumb for compute-optimal data is:",
       "options": [
-        "$D^{*}\\approx 20N^{*}$",
-        "$D^{*}\\approx 2N^{*}$",
-        "$N^{*}\\approx 20D^{*}$",
-        "$D^{*}\\approx N^{*2}$"
+        "\\(D^{*}\\approx 20N^{*}\\)",
+        "\\(D^{*}\\approx 2N^{*}\\)",
+        "\\(N^{*}\\approx 20D^{*}\\)",
+        "\\(D^{*}\\approx N^{*2}\\)"
       ],
       "answer": 0,
-      "explain": "Both $N^{*},D^{*}\\propto C^{0.5}$ makes tokens/param scale-invariant at ≈20, i.e. $D^{*}\\approx20N^{*}$."
+      "explain": "Both \\(N^{*},D^{*}\\propto C^{0.5}\\) makes tokens/param scale-invariant at ≈20, i.e. \\(D^{*}\\approx20N^{*}\\)."
     },
     {
       "id": 10,
@@ -510,7 +509,7 @@ registerLecture({
     {
       "id": 15,
       "section": "Engineering",
-      "q": "When fitting $L(N)$, why separate embedding parameters from the rest?",
+      "q": "When fitting \\(L(N)\\), why separate embedding parameters from the rest?",
       "options": [
         "Embeddings have no gradients",
         "They are stored in fp16",

@@ -1,5 +1,4 @@
-/* CS336 Companion lecture data. Auto-formatted; quiz answer positions
-   round-robin-balanced across A/B/C/D. Edit content here; keep it pure data. */
+/* CS336 Companion lecture data (math: \(..\)/\[..\]; $ is literal). */
 registerLecture({
   "id": 10,
   "estMinutes": 20,
@@ -61,10 +60,10 @@ registerLecture({
           }
         },
         {
-          "p": "The asymmetry vs training: supervised training sees all target tokens up front and pushes the whole sequence through one big matmul. Generation is autoregressive — token $t{+}1$ needs token $t$ — so you cannot parallelize across time, and keeping the hardware busy is genuinely hard."
+          "p": "The asymmetry vs training: supervised training sees all target tokens up front and pushes the whole sequence through one big matmul. Generation is autoregressive — token \\(t{+}1\\) needs token \\(t\\) — so you cannot parallelize across time, and keeping the hardware busy is genuinely hard."
         },
         {
-          "callout": "Everything below follows from one fact: a single matrix-vector product (decode, batch 1) reads an entire weight matrix to do only $O(\\text{params})$ FLOPs. The accelerator is starved for work — inference is memory-bound, and the whole game is feeding the beast.",
+          "callout": "Everything below follows from one fact: a single matrix-vector product (decode, batch 1) reads an entire weight matrix to do only \\(O(\\text{params})\\) FLOPs. The accelerator is starved for work — inference is memory-bound, and the whole game is feeding the beast.",
           "kind": "insight"
         }
       ]
@@ -74,7 +73,7 @@ registerLecture({
       "title": "Arithmetic intensity: the one number",
       "blocks": [
         {
-          "p": "<strong>Arithmetic intensity</strong> = FLOPs performed per byte moved from HBM. Compare it to the accelerator's own FLOP/byte ratio (the roofline <em>ridge point</em>): above it you are compute-bound (good), below it memory-bound (bad). Work the canonical matmul $X\\,(B{\\times}D) \\cdot W\\,(D{\\times}F)$:"
+          "p": "<strong>Arithmetic intensity</strong> = FLOPs performed per byte moved from HBM. Compare it to the accelerator's own FLOP/byte ratio (the roofline <em>ridge point</em>): above it you are compute-bound (good), below it memory-bound (bad). Work the canonical matmul \\(X\\,(B{\\times}D) \\cdot W\\,(D{\\times}F)\\):"
         },
         {
           "code": "# Arithmetic intensity of a matmul:  X (B x D) @ W (D x F)\nflops = 2*B*D*F                      # one multiply-add per output element\nbytes = 2*B*D + 2*D*F + 2*B*F        # read X, read W, write Y (bf16 = 2 B/elt)\nintensity = flops / bytes            # FLOPs per byte off HBM\n# B << D, F  =>  intensity -> B\n# H100: 989e12 FLOP/s / 3.35e12 B/s ~= 295  (roofline ridge point)\n# compute-bound iff intensity > 295  =>  need batch B ~> 295",
@@ -84,14 +83,14 @@ registerLecture({
           "math": "\\text{intensity} = \\frac{2BDF}{2BD + 2DF + 2BF} \\;\\longrightarrow\\; B \\quad (B \\ll D, F)"
         },
         {
-          "p": "An H100 does $\\approx 989$ TFLOP/s (bf16) against $\\approx 3.35$ TB/s of HBM bandwidth, so its ridge point is $\\approx 295$ FLOPs/byte. You are compute-bound only when intensity $> 295$, i.e. effective batch $B \\gtrsim 295$. At $B{=}1$ — a matrix-vector product — intensity is $1$: you read a whole $D{\\times}F$ matrix to do $2DF$ FLOPs. <strong>That is exactly what decode does.</strong>"
+          "p": "An H100 does \\(\\approx 989\\) TFLOP/s (bf16) against \\(\\approx 3.35\\) TB/s of HBM bandwidth, so its ridge point is \\(\\approx 295\\) FLOPs/byte. You are compute-bound only when intensity \\(> 295\\), i.e. effective batch \\(B \\gtrsim 295\\). At \\(B{=}1\\) — a matrix-vector product — intensity is \\(1\\): you read a whole \\(D{\\times}F\\) matrix to do \\(2DF\\) FLOPs. <strong>That is exactly what decode does.</strong>"
         },
         {
-          "callout": "The ridge point ($\\approx 295$) is why 'just raise the batch' is the first serving lever: below it you burn HBM bandwidth, not FLOPs. The catch (next sections): attention refuses to cooperate.",
+          "callout": "The ridge point (\\(\\approx 295\\)) is why 'just raise the batch' is the first serving lever: below it you burn HBM bandwidth, not FLOPs. The catch (next sections): attention refuses to cooperate.",
           "kind": "insight"
         },
         {
-          "callout": "intensity $\\to B$ holds only while $B \\ll D, F$. Push $B$ too high and the approximation breaks (and you run out of memory long before that) — the throughput win saturates well short of the asymptote.",
+          "callout": "intensity \\(\\to B\\) holds only while \\(B \\ll D, F\\). Push \\(B\\) too high and the approximation breaks (and you run out of memory long before that) — the throughput win saturates well short of the asymptote.",
           "kind": "pitfall"
         }
       ]
@@ -101,19 +100,19 @@ registerLecture({
       "title": "Two phases: prefill vs decode",
       "blocks": [
         {
-          "p": "Naive generation re-feeds the full history every step: producing $T$ tokens costs $O(T^3)$ FLOPs (each forward pass is $O(T^2)$). Storing past keys/values — the <strong>KV cache</strong> — removes that redundant recompute and splits inference into two phases with opposite characteristics."
+          "p": "Naive generation re-feeds the full history every step: producing \\(T\\) tokens costs \\(O(T^3)\\) FLOPs (each forward pass is \\(O(T^2)\\)). Storing past keys/values — the <strong>KV cache</strong> — removes that redundant recompute and splits inference into two phases with opposite characteristics."
         },
         {
-          "p": "<strong>Prefill</strong> encodes the whole $S$-token prompt at once, in parallel, like training: one big matmul, compute-bound, and it sets TTFT. <strong>Decode</strong> then generates one token at a time ($T{=}1$), strictly sequential and memory-bound. Splitting FLOPs/bytes into MLP and attention makes the asymmetry precise."
+          "p": "<strong>Prefill</strong> encodes the whole \\(S\\)-token prompt at once, in parallel, like training: one big matmul, compute-bound, and it sets TTFT. <strong>Decode</strong> then generates one token at a time (\\(T{=}1\\)), strictly sequential and memory-bound. Splitting FLOPs/bytes into MLP and attention makes the asymmetry precise."
         },
         {
-          "p": "<strong>MLP</strong> intensity $\\approx B\\,T$ (weights are shared across the batch), so decode ($T{=}1$) gives intensity $B$ — you need many concurrent requests. <strong>Attention</strong> intensity is $ST/(S{+}T)$: prefill ($T{=}S$) gives $S/2$ (compute-bound, good); decode ($T{=}1$) gives $S/(S{+}1) < 1$ (hopeless)."
+          "p": "<strong>MLP</strong> intensity \\(\\approx B\\,T\\) (weights are shared across the batch), so decode (\\(T{=}1\\)) gives intensity \\(B\\) — you need many concurrent requests. <strong>Attention</strong> intensity is \\(ST/(S{+}T)\\): prefill (\\(T{=}S\\)) gives \\(S/2\\) (compute-bound, good); decode (\\(T{=}1\\)) gives \\(S/(S{+}1) < 1\\) (hopeless)."
         },
         {
           "math": "I_{\\text{attn}} = \\frac{ST}{S+T} \\;\\Longrightarrow\\; \\underbrace{\\tfrac{S}{2}}_{\\text{prefill: } T=S} \\;\\gg\\; \\underbrace{\\tfrac{S}{S+1} < 1}_{\\text{decode: } T=1}"
         },
         {
-          "callout": "Batching raises MLP intensity (to $B$) but does <strong>nothing</strong> for attention — its intensity stays $\\approx 1$ with no $B$ dependence. Why: every sequence shares the same MLP weights (reused $B$ times), but every sequence owns its KV cache, so $Q, K, V$ all scale with $B$ and there is no reuse to amortize. This is the structural reason decode attention is pinned memory-bound.",
+          "callout": "Batching raises MLP intensity (to \\(B\\)) but does <strong>nothing</strong> for attention — its intensity stays \\(\\approx 1\\) with no \\(B\\) dependence. Why: every sequence shares the same MLP weights (reused \\(B\\) times), but every sequence owns its KV cache, so \\(Q, K, V\\) all scale with \\(B\\) and there is no reuse to amortize. This is the structural reason decode attention is pinned memory-bound.",
           "kind": "insight"
         },
         {
@@ -173,7 +172,7 @@ registerLecture({
       "title": "The KV cache: what dominates decode memory",
       "blocks": [
         {
-          "p": "The KV cache stores, for every layer, every KV head, every past token, and every sequence in the batch, the key and value vectors ($d_{\\text{head}}$ each). Computed once, reused for all future tokens. Its size is the decisive memory term in decode:"
+          "p": "The KV cache stores, for every layer, every KV head, every past token, and every sequence in the batch, the key and value vectors (\\(d_{\\text{head}}\\) each). Computed once, reused for all future tokens. Its size is the decisive memory term in decode:"
         },
         {
           "math": "\\text{KV bytes} \\;\\approx\\; 2 \\cdot n_{\\text{layers}} \\cdot n_{\\text{kv}} \\cdot d_{\\text{head}} \\cdot S \\cdot B \\cdot \\text{bytes}"
@@ -183,11 +182,11 @@ registerLecture({
           "lang": "python"
         },
         {
-          "callout": "Concrete: Llama-2-13B (40 layers, 40 KV heads, $d_{\\text{head}}{=}128$, bf16) costs $\\approx 0.8$ MB per token, $\\approx 0.8$ GB for a 1024-token sequence. At batch 64 that is $\\approx 52$ GB of KV — more than the $\\approx 26$ GB of weights. <strong>KV cache, not parameters, is what blows up decode memory.</strong>",
+          "callout": "Concrete: Llama-2-13B (40 layers, 40 KV heads, \\(d_{\\text{head}}{=}128\\), bf16) costs \\(\\approx 0.8\\) MB per token, \\(\\approx 0.8\\) GB for a 1024-token sequence. At batch 64 that is \\(\\approx 52\\) GB of KV — more than the \\(\\approx 26\\) GB of weights. <strong>KV cache, not parameters, is what blows up decode memory.</strong>",
           "kind": "key"
         },
         {
-          "p": "Because latency $\\propto$ bytes read per step, shrinking the KV cache directly buys latency, throughput, and bigger batches. Hence a family of architecture changes that all attack the same byte budget:"
+          "p": "Because latency \\(\\propto\\) bytes read per step, shrinking the KV cache directly buys latency, throughput, and bigger batches. Hence a family of architecture changes that all attack the same byte budget:"
         },
         {
           "table": {
@@ -240,7 +239,7 @@ registerLecture({
       "title": "Throughput, latency, and dynamic batching",
       "blocks": [
         {
-          "p": "From the stats above, $\\text{latency} = (\\text{params} + B\\cdot\\text{KV}) / \\text{bandwidth}$ and $\\text{throughput} = B/\\text{latency}$. Raising $B$ raises throughput but also per-token latency — the central serving tradeoff."
+          "p": "From the stats above, \\(\\text{latency} = (\\text{params} + B\\cdot\\text{KV}) / \\text{bandwidth}\\) and \\(\\text{throughput} = B/\\text{latency}\\). Raising \\(B\\) raises throughput but also per-token latency — the central serving tradeoff."
         },
         {
           "math": "\\text{latency} = \\frac{\\text{params} + B \\cdot \\text{KV}}{\\text{mem bandwidth}}, \\qquad \\text{throughput} = \\frac{B}{\\text{latency}}"
@@ -276,7 +275,7 @@ registerLecture({
           }
         },
         {
-          "callout": "<strong>Easy</strong> parallelism: launch $M$ replicas &rarr; same latency, $M\\times$ throughput. <strong>Hard</strong> parallelism: shard the model <em>and</em> the KV cache across GPUs (tensor / pipeline parallel). Combined with phase-aware scheduling (small batches in prefill, large in decode), this is how you actually hit the batch sizes the roofline wants.",
+          "callout": "<strong>Easy</strong> parallelism: launch \\(M\\) replicas &rarr; same latency, \\(M\\times\\) throughput. <strong>Hard</strong> parallelism: shard the model <em>and</em> the KV cache across GPUs (tensor / pipeline parallel). Combined with phase-aware scheduling (small batches in prefill, large in decode), this is how you actually hit the batch sizes the roofline wants.",
           "kind": "insight"
         },
         {
@@ -302,17 +301,17 @@ registerLecture({
       "title": "Speculative decoding: lossless speedup",
       "blocks": [
         {
-          "p": "Key asymmetry: <strong>checking is cheaper than generating</strong>. Verifying $k$ proposed tokens is one parallel, compute-bound forward pass; generating them sequentially is $k$ memory-bound steps. Speculative decoding exploits exactly this."
+          "p": "Key asymmetry: <strong>checking is cheaper than generating</strong>. Verifying \\(k\\) proposed tokens is one parallel, compute-bound forward pass; generating them sequentially is \\(k\\) memory-bound steps. Speculative decoding exploits exactly this."
         },
         {
-          "p": "A cheap <strong>draft</strong> model $p$ proposes $k$ tokens autoregressively; the <strong>target</strong> $q$ scores all $k$ in a single parallel pass; accept each token $x$ with probability $\\min(1, q(x)/p(x))$, and on the first rejection resample from the normalized residual $\\max(q-p, 0)$. Always emit at least one token."
+          "p": "A cheap <strong>draft</strong> model \\(p\\) proposes \\(k\\) tokens autoregressively; the <strong>target</strong> \\(q\\) scores all \\(k\\) in a single parallel pass; accept each token \\(x\\) with probability \\(\\min(1, q(x)/p(x))\\), and on the first rejection resample from the normalized residual \\(\\max(q-p, 0)\\). Always emit at least one token."
         },
         {
           "code": "# Speculative decoding, one round: draft p proposes k, target q verifies\ndraft_tokens = p.generate(k)                  # k cheap autoregressive steps\nq_probs = q.forward(draft_tokens)             # ONE parallel pass over all k\nfor x in draft_tokens:\n    if random() < min(1, q[x] / p[x]):\n        accept(x)                             # keep the proposed token\n    else:\n        emit(sample(normalize(relu(q - p))))  # corrected draw, then stop\n        break\n# P[emit x] = q(x) exactly  =>  output is an exact sample from the target",
           "lang": "python"
         },
         {
-          "callout": "The output is an <strong>exact</strong> sample from the target $q$ — not an approximation. It is modified rejection sampling; the accept/resample math gives $P[\\text{emit } x] = q(x)$ identically. You trade extra (cheap) draft+verify FLOPs for fewer sequential memory-bound steps, and the speedup grows with the acceptance rate.",
+          "callout": "The output is an <strong>exact</strong> sample from the target \\(q\\) — not an approximation. It is modified rejection sampling; the accept/resample math gives \\(P[\\text{emit } x] = q(x)\\) identically. You trade extra (cheap) draft+verify FLOPs for fewer sequential memory-bound steps, and the speedup grows with the acceptance rate.",
           "kind": "key"
         },
         {
@@ -384,7 +383,7 @@ registerLecture({
           "p": "Pruning rips out whole layers/heads/hidden-dims — rank importance on a small calibration set (NVIDIA Minitron used ~1024 samples), remove the unimportant ones, then <strong>distill</strong> the original (teacher) into the pruned (student) to repair it. Distillation more broadly: define a faster architecture, initialize from the big model, train the student to match the teacher's outputs."
         },
         {
-          "callout": "Beyond tweaking the Transformer: <strong>SSMs</strong> (Mamba) and linear/local-attention hybrids (Jamba, MiniMax-01) replace the $O(S)$ KV cache with an $O(1)$ recurrent state — structurally inference-friendly — and text <strong>diffusion</strong> LMs generate tokens in parallel rather than autoregressively. The Transformer was not designed for inference, so the biggest wins may be architectural.",
+          "callout": "Beyond tweaking the Transformer: <strong>SSMs</strong> (Mamba) and linear/local-attention hybrids (Jamba, MiniMax-01) replace the \\(O(S)\\) KV cache with an \\(O(1)\\) recurrent state — structurally inference-friendly — and text <strong>diffusion</strong> LMs generate tokens in parallel rather than autoregressively. The Transformer was not designed for inference, so the biggest wins may be architectural.",
           "kind": "connection"
         },
         {

@@ -1,5 +1,4 @@
-/* CS336 Companion lecture data. Auto-formatted; quiz answer positions
-   round-robin-balanced across A/B/C/D. Edit content here; keep it pure data. */
+/* CS336 Companion lecture data (math: \(..\)/\[..\]; $ is literal). */
 registerLecture({
   "id": 2,
   "estMinutes": 19,
@@ -86,7 +85,7 @@ registerLecture({
           "kind": "pitfall"
         },
         {
-          "p": "<strong>fp8</strong> (standardized 2022) packs into 1 byte in two flavors: E4M3 (range $[-448, 448]$) and E5M2 (range $[-57344, 57344]$). H100-class hardware runs fp8 matmuls natively; DeepSeek-V3 trained most GEMMs in fp8. Lower precision means less memory and faster compute, bought with more instability risk — handled by mixed precision."
+          "p": "<strong>fp8</strong> (standardized 2022) packs into 1 byte in two flavors: E4M3 (range \\([-448, 448]\\)) and E5M2 (range \\([-57344, 57344]\\)). H100-class hardware runs fp8 matmuls natively; DeepSeek-V3 trained most GEMMs in fp8. Lower precision means less memory and faster compute, bought with more instability risk — handled by mixed precision."
         }
       ]
     },
@@ -101,7 +100,7 @@ registerLecture({
           "math": "\\text{bytes} = \\text{numel} \\times \\text{(bytes/element)}"
         },
         {
-          "p": "Scale intuition: one feed-forward matrix in GPT-3 is $(4 \\cdot 12288,\\, 12288)$ — about $6.0\\times10^{8}$ params, so ≈2.3 GB in fp32. <em>One</em> matrix. This is why dtype choice and sharding aren't optional at scale."
+          "p": "Scale intuition: one feed-forward matrix in GPT-3 is \\((4 \\cdot 12288,\\, 12288)\\) — about \\(6.0\\times10^{8}\\) params, so ≈2.3 GB in fp32. <em>One</em> matrix. This is why dtype choice and sharding aren't optional at scale."
         },
         {
           "h": "Views are free; copies are not"
@@ -124,13 +123,13 @@ registerLecture({
       "title": "Counting compute: FLOPs",
       "blocks": [
         {
-          "p": "<strong>FLOPs</strong> (floating-point operations — a count of work done) and <strong>FLOP/s</strong> (operations per second — hardware speed) are pronounced the same and constantly confused. Anchor your intuition: GPT-3 took ≈$3.14\\times10^{23}$ FLOPs, GPT-4 is speculated at ≈$2\\times10^{25}$, and the (now-revoked) US reporting threshold was $10^{26}$."
+          "p": "<strong>FLOPs</strong> (floating-point operations — a count of work done) and <strong>FLOP/s</strong> (operations per second — hardware speed) are pronounced the same and constantly confused. Anchor your intuition: GPT-3 took ≈\\(3.14\\times10^{23}\\) FLOPs, GPT-4 is speculated at ≈\\(2\\times10^{25}\\), and the (now-revoked) US reporting threshold was \\(10^{26}\\)."
         },
         {
           "h": "Matmul dominates"
         },
         {
-          "p": "For $A_{m\\times k} B_{k\\times n}$, each of the $m\\cdot n$ outputs is a length-$k$ dot product = $k$ multiplies + $k$ adds. Everything else (elementwise ops, adds, norms) is $O(\\text{numel})$ and asymptotically free next to matmul on large matrices."
+          "p": "For \\(A_{m\\times k} B_{k\\times n}\\), each of the \\(m\\cdot n\\) outputs is a length-\\(k\\) dot product = \\(k\\) multiplies + \\(k\\) adds. Everything else (elementwise ops, adds, norms) is \\(O(\\text{numel})\\) and asymptotically free next to matmul on large matrices."
         },
         {
           "math": "\\text{FLOPs}\\big(A_{m\\times k}\\,B_{k\\times n}\\big) = 2\\,m\\,n\\,k"
@@ -140,11 +139,11 @@ registerLecture({
           "lang": "python"
         },
         {
-          "callout": "For a linear layer $y = xW$ with $x$ of shape (tokens, $D$) and $W$ of shape $(D, K)$: FLOPs $= 2 \\cdot \\text{tokens} \\cdot (D K) = 2 \\cdot (\\#\\text{tokens}) \\cdot (\\#\\text{params})$. So the forward pass is ≈$2ND$ — the seed of the entire 6ND law, and it generalizes to Transformers to first order.",
+          "callout": "For a linear layer \\(y = xW\\) with \\(x\\) of shape (tokens, \\(D\\)) and \\(W\\) of shape \\((D, K)\\): FLOPs \\(= 2 \\cdot \\text{tokens} \\cdot (D K) = 2 \\cdot (\\#\\text{tokens}) \\cdot (\\#\\text{params})\\). So the forward pass is ≈\\(2ND\\) — the seed of the entire 6ND law, and it generalizes to Transformers to first order.",
           "kind": "key"
         },
         {
-          "callout": "That first-order story is exactly why $6ND$ omits attention's $QK^\\top$ and (softmax)$\\cdot V$ — those scale with sequence length <em>squared</em>, not with params. Fine for modest context, an undercount for long context (the regime FlashAttention targets).",
+          "callout": "That first-order story is exactly why \\(6ND\\) omits attention's \\(QK^\\top\\) and (softmax)\\(\\cdot V\\) — those scale with sequence length <em>squared</em>, not with params. Fine for modest context, an undercount for long context (the regime FlashAttention targets).",
           "kind": "connection"
         }
       ]
@@ -154,10 +153,10 @@ registerLecture({
       "title": "Forward, backward, and the 6ND rule",
       "blocks": [
         {
-          "p": "The forward pass is one matmul per weight; the backward pass is two. That asymmetry is the whole derivation of $6ND$ — no magic constant."
+          "p": "The forward pass is one matmul per weight; the backward pass is two. That asymmetry is the whole derivation of \\(6ND\\) — no magic constant."
         },
         {
-          "p": "For a hidden layer $h_{\\text{out}} = h_{\\text{in}} W$, backprop needs two matmuls of the same size as the forward: $\\partial L/\\partial W = h_{\\text{in}}^\\top (\\partial L/\\partial h_{\\text{out}})$ to <em>update the weight</em>, and $\\partial L/\\partial h_{\\text{in}} = (\\partial L/\\partial h_{\\text{out}}) W^\\top$ to <em>relay the gradient</em> to the previous layer. Two matmuls vs the forward's one → $4ND$ vs $2ND$."
+          "p": "For a hidden layer \\(h_{\\text{out}} = h_{\\text{in}} W\\), backprop needs two matmuls of the same size as the forward: \\(\\partial L/\\partial W = h_{\\text{in}}^\\top (\\partial L/\\partial h_{\\text{out}})\\) to <em>update the weight</em>, and \\(\\partial L/\\partial h_{\\text{in}} = (\\partial L/\\partial h_{\\text{out}}) W^\\top\\) to <em>relay the gradient</em> to the previous layer. Two matmuls vs the forward's one → \\(4ND\\) vs \\(2ND\\)."
         },
         {
           "code": "# x --w1--> h1 --w2--> h2 -> loss      (params = D*D + D*K)\nfwd = 2*B*D*D + 2*B*D*K                  # = 2 * tokens * params\n\n# backward needs TWO matmuls per weight matrix:\n#   w2.grad = h1.T @ h2.grad    -> 2*B*D*K   (gradient wrt the weight)\n#   h1.grad = h2.grad @ w2.T    -> 2*B*D*K   (gradient relayed to input)\nbwd = (2+2)*B*D*K + (2+2)*B*D*D           # = 4 * tokens * params\n\ntotal = fwd + bwd                        # = 6 * tokens * params  (6ND)",
@@ -174,17 +173,17 @@ registerLecture({
               [
                 "Forward",
                 "1",
-                "$2ND$"
+                "\\(2ND\\)"
               ],
               [
                 "Backward",
                 "2 (weight grad + input grad)",
-                "$4ND$"
+                "\\(4ND\\)"
               ],
               [
                 "Total",
                 "3",
-                "$6ND$"
+                "\\(6ND\\)"
               ]
             ]
           }
@@ -193,11 +192,11 @@ registerLecture({
           "math": "C_{\\text{train}} \\approx 6ND \\qquad\\qquad C_{\\text{infer}} \\approx 2N \\;\\text{ per token}"
         },
         {
-          "callout": "Inference is forward-only — no backward, no optimizer — so ≈$2N$ FLOPs per token. Training a token (~$6N$) costs ~3× an inference forward. Yet globally, aggregate inference can still dwarf the one-time training cost because it runs forever (the Lecture 1 point).",
+          "callout": "Inference is forward-only — no backward, no optimizer — so ≈\\(2N\\) FLOPs per token. Training a token (~\\(6N\\)) costs ~3× an inference forward. Yet globally, aggregate inference can still dwarf the one-time training cost because it runs forever (the Lecture 1 point).",
           "kind": "insight"
         },
         {
-          "callout": "$6ND$ counts parameter matmuls only. It ignores attention's seq² term, embeddings, and norms, and it assumes no recomputation. Full activation checkpointing recomputes the forward inside backward, adding ~$2ND$ and pushing the effective cost toward $8ND$. Treat $6ND$ as a clean lower bound, not a billing statement.",
+          "callout": "\\(6ND\\) counts parameter matmuls only. It ignores attention's seq² term, embeddings, and norms, and it assumes no recomputation. Full activation checkpointing recomputes the forward inside backward, adding ~\\(2ND\\) and pushing the effective cost toward \\(8ND\\). Treat \\(6ND\\) as a clean lower bound, not a billing statement.",
           "kind": "pitfall"
         }
       ]
@@ -251,7 +250,7 @@ registerLecture({
           "lang": "python"
         },
         {
-          "callout": "Worked example: a 70B model on 15T tokens is $6 \\cdot 70\\text{e}9 \\cdot 15\\text{e}12 = 6.3\\times10^{24}$ FLOPs. On 1024 H100s at 989.5 TFLOP/s × 0.5 MFU ≈ $5.1\\times10^{17}$ FLOP/s, that's ≈144 days. Doubling $N$ or $D$ doubles the bill; halving MFU doubles the time. Always run this before requesting a cluster.",
+          "callout": "Worked example: a 70B model on 15T tokens is \\(6 \\cdot 70\\text{e}9 \\cdot 15\\text{e}12 = 6.3\\times10^{24}\\) FLOPs. On 1024 H100s at 989.5 TFLOP/s × 0.5 MFU ≈ \\(5.1\\times10^{17}\\) FLOP/s, that's ≈144 days. Doubling \\(N\\) or \\(D\\) doubles the bill; halving MFU doubles the time. Always run this before requesting a cluster.",
           "kind": "insight"
         }
       ]
@@ -313,10 +312,10 @@ registerLecture({
           "lang": "python"
         },
         {
-          "p": "Activations are the wildcard: they scale with <em>batch × seq_len × layers × hidden</em>, independent of parameter count, and they're what makes long-context or large-batch training OOM. Activation checkpointing trades compute (an extra forward) for activation memory — the same $6ND \\to 8ND$ tradeoff from the previous section."
+          "p": "Activations are the wildcard: they scale with <em>batch × seq_len × layers × hidden</em>, independent of parameter count, and they're what makes long-context or large-batch training OOM. Activation checkpointing trades compute (an extra forward) for activation memory — the same \\(6ND \\to 8ND\\) tradeoff from the previous section."
         },
         {
-          "callout": "Napkin cap: on 8×H100 (80 GB each = 640 GB) with naive fp32 Adam at 16 bytes/param, the largest trainable model is $640\\text{e}9 / 16 \\approx 40$B params — <em>before</em> activations. That hard ceiling is precisely why FSDP/ZeRO sharding and bf16 storage exist.",
+          "callout": "Napkin cap: on 8×H100 (80 GB each = 640 GB) with naive fp32 Adam at 16 bytes/param, the largest trainable model is \\(640\\text{e}9 / 16 \\approx 40\\)B params — <em>before</em> activations. That hard ceiling is precisely why FSDP/ZeRO sharding and bf16 storage exist.",
           "kind": "key"
         },
         {
@@ -328,9 +327,9 @@ registerLecture({
   "takeaways": [
     "Memory = numel × bytes/element. fp32 = 4 B, fp16/bf16 = 2 B, fp8 = 1 B per element.",
     "bf16 trades mantissa (precision) for exponent (range): it shares fp32's range, so no underflow — why it beat fp16 as the training default.",
-    "Matmul $A_{m\\times k}B_{k\\times n}$ costs $2mnk$ FLOPs; a linear layer's forward is $2 \\cdot \\text{tokens} \\cdot \\text{params}$.",
-    "Backward = 2 matmuls/weight (weight grad + relayed input grad) = $4ND$; forward = $2ND$; training ≈ $6ND$, inference ≈ $2N$/token.",
-    "MFU = achieved ÷ peak FLOP/s; realistic ~0.3–0.5. $T \\approx 6ND / (n_{\\text{gpu}} \\times \\text{peak} \\times \\text{MFU})$.",
+    "Matmul \\(A_{m\\times k}B_{k\\times n}\\) costs \\(2mnk\\) FLOPs; a linear layer's forward is \\(2 \\cdot \\text{tokens} \\cdot \\text{params}\\).",
+    "Backward = 2 matmuls/weight (weight grad + relayed input grad) = \\(4ND\\); forward = \\(2ND\\); training ≈ \\(6ND\\), inference ≈ \\(2N\\)/token.",
+    "MFU = achieved ÷ peak FLOP/s; realistic ~0.3–0.5. \\(T \\approx 6ND / (n_{\\text{gpu}} \\times \\text{peak} \\times \\text{MFU})\\).",
     "Training memory ≈ 16 bytes/param (params + grads + Adam m/v + fp32 master) + activations ≫ inference; mixed precision speeds compute but doesn't shrink this — sharding and checkpointing do.",
     "A tensor is a pointer + stride: views share storage (free), copies cost memory + compute; transpose → non-contiguous → <code>.view()</code> fails until <code>.contiguous()</code>."
   ],

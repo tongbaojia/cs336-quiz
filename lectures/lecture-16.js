@@ -1,5 +1,4 @@
-/* CS336 Companion lecture data. Auto-formatted; quiz answer positions
-   round-robin-balanced across A/B/C/D. Edit content here; keep it pure data. */
+/* CS336 Companion lecture data (math: \(..\)/\[..\]; $ is literal). */
 registerLecture({
   "id": 16,
   "estMinutes": 20,
@@ -64,7 +63,7 @@ registerLecture({
       "title": "Recap PPO, and why a new algorithm",
       "blocks": [
         {
-          "p": "RLVR still needs a policy-gradient optimizer. Recall the PPO lineage: vanilla policy gradients (unbiased, high variance) $\\rightarrow$ TRPO (trust region) $\\rightarrow$ PPO (clip the importance ratio). In the LM setting it is a bandit — one dense reward at the final token — plus a per-token KL penalty to the reference."
+          "p": "RLVR still needs a policy-gradient optimizer. Recall the PPO lineage: vanilla policy gradients (unbiased, high variance) \\(\\rightarrow\\) TRPO (trust region) \\(\\rightarrow\\) PPO (clip the importance ratio). In the LM setting it is a bandit — one dense reward at the final token — plus a per-token KL penalty to the reference."
         },
         {
           "math": "\\nabla_\\theta\\,\\mathbb{E}_{z\\sim\\pi_\\theta}\\!\\left[R(z)\\right] \\;=\\; \\mathbb{E}_{z\\sim\\pi_\\theta}\\!\\left[\\,R(z)\\,\\nabla_\\theta \\log \\pi_\\theta(z)\\,\\right]"
@@ -89,13 +88,13 @@ registerLecture({
       "title": "GRPO: group-relative advantages, no critic",
       "blocks": [
         {
-          "p": "GRPO (Group Relative Policy Optimization; Shao et al. 2024, DeepSeekMath) keeps PPO's clipped ratio but <strong>removes the value network</strong>. For each prompt it samples a <strong>group</strong> of $G$ responses and uses the group itself as the baseline — the advantage is each response's reward, z-scored within its group."
+          "p": "GRPO (Group Relative Policy Optimization; Shao et al. 2024, DeepSeekMath) keeps PPO's clipped ratio but <strong>removes the value network</strong>. For each prompt it samples a <strong>group</strong> of \\(G\\) responses and uses the group itself as the baseline — the advantage is each response's reward, z-scored within its group."
         },
         {
           "math": "\\hat{A}_{i} \\;=\\; \\frac{r_i - \\mathrm{mean}\\!\\left(\\{r_1,\\dots,r_G\\}\\right)}{\\mathrm{std}\\!\\left(\\{r_1,\\dots,r_G\\}\\right)}"
         },
         {
-          "p": "Every token of response $i$ inherits the same scalar $\\hat{A}_i$ (a bandit/outcome reward — no per-token credit assignment). With ratio $\\rho_{i,t}=\\pi_\\theta(y_{i,t}\\mid x,y_{i,<t})/\\pi_{\\theta_{\\mathrm{old}}}(\\cdot)$, the objective is PPO's clip averaged over the group, with the KL added directly to the loss:"
+          "p": "Every token of response \\(i\\) inherits the same scalar \\(\\hat{A}_i\\) (a bandit/outcome reward — no per-token credit assignment). With ratio \\(\\rho_{i,t}=\\pi_\\theta(y_{i,t}\\mid x,y_{i,<t})/\\pi_{\\theta_{\\mathrm{old}}}(\\cdot)\\), the objective is PPO's clip averaged over the group, with the KL added directly to the loss:"
         },
         {
           "math": "\\mathcal{J}_{\\mathrm{GRPO}}(\\theta) = \\mathbb{E}\\!\\left[\\frac{1}{G}\\sum_{i=1}^{G}\\frac{1}{|y_i|}\\sum_{t=1}^{|y_i|} \\min\\!\\left(\\rho_{i,t}\\hat{A}_i,\\; \\mathrm{clip}(\\rho_{i,t},1-\\epsilon,1+\\epsilon)\\,\\hat{A}_i\\right)\\right] - \\beta\\,\\mathbb{D}_{\\mathrm{KL}}\\!\\left(\\pi_\\theta\\;\\|\\;\\pi_{\\mathrm{ref}}\\right)"
@@ -105,7 +104,7 @@ registerLecture({
           "lang": "python"
         },
         {
-          "p": "In the fully online case (rollout then immediate update, so $\\rho_{i,t}\\approx 1$ and no clipping bites), GRPO is simply <em>policy gradient with group-normalized rewards</em>. The whole method fits in a few dozen lines — the practical appeal that made RLVR accessible."
+          "p": "In the fully online case (rollout then immediate update, so \\(\\rho_{i,t}\\approx 1\\) and no clipping bites), GRPO is simply <em>policy gradient with group-normalized rewards</em>. The whole method fits in a few dozen lines — the practical appeal that made RLVR accessible."
         },
         {
           "table": {
@@ -118,7 +117,7 @@ registerLecture({
               [
                 "Baseline",
                 "learned value network (critic)",
-                "group mean over $G$ samples"
+                "group mean over \\(G\\) samples"
               ],
               [
                 "Extra model",
@@ -148,7 +147,7 @@ registerLecture({
           "p": "RL theory (Sutton and Barto) says you may subtract any <em>state-dependent</em> term from the reward without biasing the gradient. Subtracting the group <strong>mean</strong> qualifies — it is a valid baseline. Dividing by the group <strong>std</strong> does not: it rescales each prompt's gradient, so GRPO's standard form is a <em>biased</em> estimator."
         },
         {
-          "callout": "Two GRPO biases (Liu et al. 2025, 'Dr. GRPO'): (1) the std term <strong>upweights too-easy and too-hard prompts</strong> — low within-group variance inflates $|\\hat{A}|$; (2) per-response $1/|y_i|$ length normalization induces a <strong>length bias</strong> that can reward longer incorrect answers. Dropping both recovers an unbiased estimator close to REINFORCE-leave-one-out.",
+          "callout": "Two GRPO biases (Liu et al. 2025, 'Dr. GRPO'): (1) the std term <strong>upweights too-easy and too-hard prompts</strong> — low within-group variance inflates \\(|\\hat{A}|\\); (2) per-response \\(1/|y_i|\\) length normalization induces a <strong>length bias</strong> that can reward longer incorrect answers. Dropping both recovers an unbiased estimator close to REINFORCE-leave-one-out.",
           "kind": "pitfall"
         },
         {
@@ -180,7 +179,7 @@ registerLecture({
           "h": "R1: making it usable"
         },
         {
-          "p": "R1-Zero's outputs are hard to read (language mixing, messy formatting). R1 adds structure around the same RL core: a small <strong>long-CoT SFT cold start</strong>, a <strong>language-consistency</strong> reward on the CoT, and a multi-stage pipeline — reasoning RL $\\rightarrow$ SFT on ~600k reasoning (V3-judged) + ~200k general examples $\\rightarrow$ a final RLHF stage (still GRPO) for non-verifiable tasks."
+          "p": "R1-Zero's outputs are hard to read (language mixing, messy formatting). R1 adds structure around the same RL core: a small <strong>long-CoT SFT cold start</strong>, a <strong>language-consistency</strong> reward on the CoT, and a multi-stage pipeline — reasoning RL \\(\\rightarrow\\) SFT on ~600k reasoning (V3-judged) + ~200k general examples \\(\\rightarrow\\) a final RLHF stage (still GRPO) for non-verifiable tasks."
         },
         {
           "p": "<strong>Distillation:</strong> R1 generates ~800k CoT traces; SFT-ing these into Qwen2.5 / Llama students makes small models reason — and distillation beats running RLVR directly on the small model, since the small model can't explore its way to the traces on its own."
@@ -195,10 +194,10 @@ registerLecture({
           "p": "Two contemporaneous recipes confirm and extend the picture."
         },
         {
-          "p": "<strong>Kimi k1.5</strong> (2025) also beats o1. It uses a reference-based reward from a DPO-style derivation (nonparametric assumption, solve for $r$, squared-loss surrogate) — a baselined policy gradient with regularization that <em>avoids GRPO's length bias</em>. To further compress CoTs it adds an explicit <strong>length reward</strong>: correct answers are incentivized to be short, incorrect ones to be shorter than the group center — enabled only late in training, since it hurts performance early."
+          "p": "<strong>Kimi k1.5</strong> (2025) also beats o1. It uses a reference-based reward from a DPO-style derivation (nonparametric assumption, solve for \\(r\\), squared-loss surrogate) — a baselined policy gradient with regularization that <em>avoids GRPO's length bias</em>. To further compress CoTs it adds an explicit <strong>length reward</strong>: correct answers are incentivized to be short, incorrect ones to be shorter than the group center — enabled only late in training, since it hurts performance early."
         },
         {
-          "p": "Shared RLVR craft: <strong>difficulty filtering and curriculum</strong> — drop problems the model already solves without CoT, keep only those it fails best-of-8, and sample proportional to $(1-\\text{success\\_rate})$ to avoid wasting rollouts on solved items. For code, generate fresh test cases from reference solutions; for math, train a CoT reward model for answer-equivalence checks."
+          "p": "Shared RLVR craft: <strong>difficulty filtering and curriculum</strong> — drop problems the model already solves without CoT, keep only those it fails best-of-8, and sample proportional to \\((1-\\text{success\\_rate})\\) to avoid wasting rollouts on solved items. For code, generate fresh test cases from reference solutions; for math, train a CoT reward model for answer-equivalence checks."
         },
         {
           "p": "<strong>Qwen3</strong> pushes <strong>low-data RLVR</strong>: GRPO on only ~4,000 curated examples (after difficulty + dedup + validation-leakage filtering). It adds <em>thinking-mode fusion</em> — mixing thinking / non-thinking data with tags and an early-stop string to control CoT length. Note: a general-purpose RLHF stage applied <em>after</em> reasoning RL slightly degrades math/STEM — a real alignment tax."
@@ -274,7 +273,7 @@ registerLecture({
   ],
   "takeaways": [
     "RLVR optimizes a verifiable reward (answer-check, unit tests) instead of a learned RM — essentially unhackable, so RL can be scaled far harder.",
-    "GRPO drops PPO's value network: sample $G$ responses per prompt and use the group as the baseline, $\\hat{A}_i=(r_i-\\mathrm{mean})/\\mathrm{std}$.",
+    "GRPO drops PPO's value network: sample \\(G\\) responses per prompt and use the group as the baseline, \\(\\hat{A}_i=(r_i-\\mathrm{mean})/\\mathrm{std}\\).",
     "Online GRPO is just policy gradient with group-normalized rewards; it fits in a few dozen lines, which is why RLVR took off.",
     "Dividing by std is not a valid baseline: GRPO is biased toward easy/hard prompts and long answers — Dr. GRPO / RLOO fix it.",
     "DeepSeek-R1-Zero: long CoT and self-reflection emerge from pure RL on accuracy+format rewards, no SFT and no PRM/MCTS needed.",
@@ -354,12 +353,12 @@ registerLecture({
     {
       "id": 4,
       "section": "GRPO",
-      "q": "GRPO's advantage for response $i$ in a group is:",
+      "q": "GRPO's advantage for response \\(i\\) in a group is:",
       "options": [
-        "The value-network estimate $V(s_i)$",
+        "The value-network estimate \\(V(s_i)\\)",
         "The discounted reward-to-go",
-        "$r_i$ minus the running average across all prompts",
-        "$(r_i - \\mathrm{mean}(r))/\\mathrm{std}(r)$ over the group"
+        "\\(r_i\\) minus the running average across all prompts",
+        "\\((r_i - \\mathrm{mean}(r))/\\mathrm{std}(r)\\) over the group"
       ],
       "answer": 3,
       "explain": "GRPO z-scores each response's reward within its sampled group; the group is the baseline."
@@ -388,7 +387,7 @@ registerLecture({
         "TRPO with a hard trust region"
       ],
       "answer": 1,
-      "explain": "With $\\rho\\approx1$ and no clipping active, GRPO is just REINFORCE using group-normalized rewards as advantages."
+      "explain": "With \\(\\rho\\approx1\\) and no clipping active, GRPO is just REINFORCE using group-normalized rewards as advantages."
     },
     {
       "id": 7,
@@ -411,7 +410,7 @@ registerLecture({
         "Ignoring correct answers",
         "Downweighting all long sequences equally",
         "Removing the KL term",
-        "Upweighting too-easy and too-hard prompts (low within-group variance inflates $|\\hat{A}|$)"
+        "Upweighting too-easy and too-hard prompts (low within-group variance inflates \\(|\\hat{A}|\\))"
       ],
       "answer": 3,
       "explain": "Low-variance groups (nearly all right or all wrong) get amplified advantages — a difficulty bias (Dr. GRPO)."
@@ -421,7 +420,7 @@ registerLecture({
       "section": "Bias",
       "q": "Dr. GRPO's unbiased fix is closest to:",
       "options": [
-        "REINFORCE leave-one-out: $r_i - \\frac{1}{G-1}\\sum_{j\\neq i} r_j$",
+        "REINFORCE leave-one-out: \\(r_i - \\frac{1}{G-1}\\sum_{j\\neq i} r_j\\)",
         "GAE with a learned critic",
         "DPO's pairwise loss",
         "PPO with a tighter clip"

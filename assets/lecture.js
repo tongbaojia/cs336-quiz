@@ -57,6 +57,7 @@
             ${C.quizTotal(id) ? `<span>\u00b7</span><span>${C.quizTotal(id)}-question quiz</span>` : ""}
           </div>
           ${L.overview ? `<div class="overview">${L.overview}</div>` : ""}
+          ${cat.kicker ? `<a class="essay-link" href="book.html#l-${id}"><span class="el-kick">\u201c${C.esc(cat.kicker)}\u201d</span> <span class="el-go">Read the essay \u2192</span></a>` : ""}
         </div>
         ${sectionsHtml}
         ${takeaways}

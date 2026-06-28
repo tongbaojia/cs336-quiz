@@ -257,11 +257,51 @@ kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11
 .empty-good { text-align: center; color: var(--green); padding: 16px; font-weight: 600; }
 .notfound { text-align: center; padding: 80px 20px; color: var(--muted); }
 
+/* ---------- "The Why" book ---------- */
+.book-hero { margin-bottom: 18px; padding-bottom: 22px; border-bottom: 1px solid var(--border-soft); }
+.book-hero .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 1.4px; color: var(--accent); font-weight: 700; }
+.book-hero h1 { font-size: 32px; margin: 8px 0 10px; letter-spacing: -.6px; }
+.book-hero h1 .grad { background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.book-hero p { color: var(--text-2); font-size: 16px; max-width: 640px; line-height: 1.7; margin: 0 0 14px; }
+.credit { font-size: 13px; color: var(--muted); background: var(--panel-2); border: 1px solid var(--border-soft); border-left: 3px solid var(--accent-2); border-radius: 10px; padding: 12px 15px; line-height: 1.6; }
+.credit b { color: var(--text-2); font-weight: 600; }
+
+.part { margin: 44px 0 8px; }
+.part .pnum { font-size: 12px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted-2); font-weight: 700; }
+.part h2 { font-size: 24px; margin: 4px 0 6px; letter-spacing: -.4px; }
+.part .pblurb { color: var(--muted); font-size: 14.5px; margin: 0; }
+.part .prule { height: 1px; background: var(--border-soft); margin-top: 14px; }
+
+.chapter { margin: 30px 0; scroll-margin-top: 20px; }
+.chapter .chead { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.chapter .cnum { font-size: 13px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+.chapter h3 { font-size: 20px; margin: 0; letter-spacing: -.3px; }
+.chapter .kicker { font-size: 16px; color: var(--text); font-style: italic; margin: 8px 0 12px; padding-left: 14px; border-left: 2px solid var(--accent-2); }
+.chapter .essay .b-p:first-child { margin-top: 0; }
+.chapter .cfoot { margin-top: 12px; }
+.chapter .cfoot a { font-size: 13px; font-weight: 600; }
+.chapter .pending { color: var(--muted-2); font-size: 14px; font-style: italic; }
+
+/* essay teaser on the lecture page header */
+.essay-link { display: inline-flex; align-items: center; gap: 7px; margin-top: 14px; font-size: 13.5px; color: var(--text-2); background: var(--panel-2); border: 1px solid var(--border-soft); border-left: 3px solid var(--accent-2); border-radius: 9px; padding: 9px 13px; text-decoration: none; }
+.essay-link:hover { border-color: var(--accent); text-decoration: none; }
+.essay-link .el-kick { color: var(--muted); font-style: italic; }
+.essay-link .el-go { color: var(--accent); font-weight: 700; }
+
+/* homepage book banner */
+.bookbanner { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 26px 0 4px; padding: 18px 22px; border: 1px solid var(--border); border-radius: var(--radius); background: linear-gradient(120deg, rgba(168,85,247,.10), rgba(124,140,255,.06)); text-decoration: none; transition: all .15s ease; }
+.bookbanner:hover { border-color: var(--accent); text-decoration: none; transform: translateY(-1px); }
+.bookbanner .bb-l .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--accent); font-weight: 700; }
+.bookbanner .bb-l h3 { font-size: 19px; margin: 4px 0 4px; color: var(--text); letter-spacing: -.3px; }
+.bookbanner .bb-l p { font-size: 13.5px; color: var(--muted); margin: 0; max-width: 640px; }
+.bookbanner .bb-go { flex: none; font-weight: 700; color: var(--accent); font-size: 14px; }
+
 @media (max-width: 900px) {
   .lecwrap { grid-template-columns: 1fr; gap: 18px; }
   .toc { display: none; }
   .hero { grid-template-columns: 1fr; }
   .dash { justify-self: start; }
+  .bookbanner { flex-direction: column; align-items: flex-start; }
 }
 @media (max-width: 560px) {
   .grid { grid-template-columns: 1fr; }

@@ -1,5 +1,4 @@
-/* CS336 Companion lecture data. Auto-formatted; quiz answer positions
-   round-robin-balanced across A/B/C/D. Edit content here; keep it pure data. */
+/* CS336 Companion lecture data (math: \(..\)/\[..\]; $ is literal). */
 registerLecture({
   "id": 8,
   "estMinutes": 21,
@@ -68,7 +67,7 @@ registerLecture({
           "lang": "python"
         },
         {
-          "callout": "<strong>World size</strong> = number of devices; <strong>rank</strong> = this process's device id ($0 \\ldots n-1$). Every collective is collective &mdash; <em>all</em> ranks must call it, or you deadlock. This is the #1 distributed-bug source.",
+          "callout": "<strong>World size</strong> = number of devices; <strong>rank</strong> = this process's device id (\\(0 \\ldots n-1\\)). Every collective is collective &mdash; <em>all</em> ranks must call it, or you deadlock. This is the #1 distributed-bug source.",
           "kind": "pitfall"
         }
       ]
@@ -88,7 +87,7 @@ registerLecture({
           "list": [
             "<code>all_reduce</code> aliases input and output &mdash; the tensor is overwritten in place; there is no separate result buffer.",
             "<code>op=dist.ReduceOp.SUM</code> (also <code>AVG</code>, <code>MIN</code>, <code>MAX</code>) is the associative reduction.",
-            "<code>reduce_scatter_tensor</code> takes a length-$n$ input per rank and returns a length-1 slice &mdash; the reduce, scattered.",
+            "<code>reduce_scatter_tensor</code> takes a length-\\(n\\) input per rank and returns a length-1 slice &mdash; the reduce, scattered.",
             "<code>async_op=False</code> blocks; <code>True</code> returns a handle you can <code>.wait()</code> on &mdash; the hook for overlapping communication with compute."
           ]
         },
@@ -103,7 +102,7 @@ registerLecture({
       "title": "Benchmarking real bandwidth",
       "blocks": [
         {
-          "p": "Theory says all-reduce moves ~$2\\times$ the message; let's measure the achieved bandwidth. Warm up once (NCCL lazily builds rings), <code>cuda.synchronize()</code> + <code>barrier()</code> to fence the timing, then time a single call on ~100M floats:"
+          "p": "Theory says all-reduce moves ~\\(2\\times\\) the message; let's measure the achieved bandwidth. Warm up once (NCCL lazily builds rings), <code>cuda.synchronize()</code> + <code>barrier()</code> to fence the timing, then time a single call on ~100M floats:"
         },
         {
           "code": "def all_reduce(rank, world_size, num_elements):\n    setup(rank, world_size)\n    tensor = torch.randn(num_elements, device=get_device(rank))\n\n    dist.all_reduce(tensor=tensor, op=dist.ReduceOp.SUM, async_op=False)  # warmup\n    torch.cuda.synchronize(); dist.barrier()\n\n    start = time.time()\n    dist.all_reduce(tensor=tensor, op=dist.ReduceOp.SUM, async_op=False)\n    torch.cuda.synchronize(); dist.barrier()\n    duration = time.time() - start\n\n    # Effective bandwidth: each rank sends its input AND receives the result\n    size_bytes = tensor.element_size() * tensor.numel()\n    sent_bytes = size_bytes * 2 * (world_size - 1)   # the 2(n-1) of ring all-reduce\n    bandwidth = sent_bytes / (world_size * duration)\n    cleanup()",
@@ -117,7 +116,7 @@ registerLecture({
           "lang": "python"
         },
         {
-          "callout": "This is why Lecture 7 quotes all-reduce as &ldquo;$2\\times$ #params&rdquo; but a lone reduce-scatter (or all-gather) as &ldquo;$1\\times$&rdquo;. FSDP's $3\\times$ is literally two all-gathers + one reduce-scatter = $1+1+1$. The cost model is not a metaphor &mdash; it falls straight out of the byte counts.",
+          "callout": "This is why Lecture 7 quotes all-reduce as &ldquo;\\(2\\times\\) #params&rdquo; but a lone reduce-scatter (or all-gather) as &ldquo;\\(1\\times\\)&rdquo;. FSDP's \\(3\\times\\) is literally two all-gathers + one reduce-scatter = \\(1+1+1\\). The cost model is not a metaphor &mdash; it falls straight out of the byte counts.",
           "kind": "insight"
         },
         {
@@ -140,7 +139,7 @@ registerLecture({
         {
           "list": [
             "Losses differ across ranks (computed on local data); <strong>gradients</strong> are all-reduced to match, so parameters stay identical across ranks every step.",
-            "<code>ReduceOp.AVG</code>, not <code>SUM</code>: each rank's grad comes from a $1/N$ batch shard, and averaging reconstructs the full-batch gradient.",
+            "<code>ReduceOp.AVG</code>, not <code>SUM</code>: each rank's grad comes from a \\(1/N\\) batch shard, and averaging reconstructs the full-batch gradient.",
             "Optimizer state is replicated &mdash; exactly the 16-bytes/param waste ZeRO-1 removes."
           ]
         },
@@ -159,7 +158,7 @@ registerLecture({
       "title": "Tensor parallel: a sharded matmul",
       "blocks": [
         {
-          "p": "Now cut the model along <em>width</em>. Each rank owns a $1/N$ column-slice of every layer's weight, computes a partial activation, then <strong>all-gathers</strong> the slices and concatenates to reconstruct the full activation for the next layer:"
+          "p": "Now cut the model along <em>width</em>. Each rank owns a \\(1/N\\) column-slice of every layer's weight, computes a partial activation, then <strong>all-gathers</strong> the slices and concatenates to reconstruct the full activation for the next layer:"
         },
         {
           "code": "def tensor_parallelism_main(rank, world_size, data, num_layers):\n    setup(rank, world_size)\n    data = data.to(get_device(rank))\n    batch_size, num_dim = data.size(0), data.size(1)\n    local_num_dim = int_divide(num_dim, world_size)   # shard the width\n\n    # Each rank gets 1/world_size of every layer's parameters\n    params = [get_init_params(num_dim, local_num_dim, rank) for i in range(num_layers)]\n\n    x = data\n    for i in range(num_layers):\n        x = x @ params[i]      # (batch_size x local_num_dim): a partial activation\n        x = F.gelu(x)\n\n        # Gather the column-shards from all ranks ...\n        activations = [torch.empty(batch_size, local_num_dim, device=get_device(rank))\n                       for _ in range(world_size)]\n        dist.all_gather(tensor_list=activations, tensor=x, async_op=False)\n        x = torch.cat(activations, dim=1)   # ... -> (batch_size x num_dim)\n    cleanup()",
@@ -170,7 +169,7 @@ registerLecture({
           "kind": "connection"
         },
         {
-          "p": "This toy uses GELU(non-linearity) after the gather for clarity; real Megatron places the collective so $f$=identity / $g$=all-reduce on the forward and the reverse on the backward, fusing the partial-sum reduction into the block. The backward pass here is left as the homework exercise."
+          "p": "This toy uses GELU(non-linearity) after the gather for clarity; real Megatron places the collective so \\(f\\)=identity / \\(g\\)=all-reduce on the forward and the reverse on the backward, fusing the partial-sum reduction into the block. The backward pass here is left as the homework exercise."
         },
         {
           "callout": "Notice TP needs no large batch and has no bubble &mdash; the activation gather is the entire tax. The deep-MLP target is deliberate: MLP blocks dominate Transformer FLOPs, so a sharded-MLP microbenchmark predicts the real model's behavior.",
@@ -190,7 +189,7 @@ registerLecture({
           "lang": "python"
         },
         {
-          "callout": "<code>send</code>/<code>recv</code> are point-to-point, not collectives &mdash; the cheap, inter-node-friendly comm pattern from Lecture 7. More microbatches shrink the $(p-1)/n_{\\text{micro}}$ bubble, but this toy doesn't yet overlap the send/recv with compute to fully eliminate it.",
+          "callout": "<code>send</code>/<code>recv</code> are point-to-point, not collectives &mdash; the cheap, inter-node-friendly comm pattern from Lecture 7. More microbatches shrink the \\((p-1)/n_{\\text{micro}}\\) bubble, but this toy doesn't yet overlap the send/recv with compute to fully eliminate it.",
           "kind": "connection"
         },
         {
@@ -203,7 +202,7 @@ registerLecture({
           "list": [
             "<strong>Forward</strong>: before a layer runs, <code>all_gather</code> its parameter shards into the full weight; run the layer; immediately free the gathered params.",
             "<strong>Backward</strong>: <code>all_gather</code> the params again for the grad computation, then <code>reduce_scatter</code> the gradients so each rank keeps only its shard.",
-            "<strong>Overlap</strong>: prefetch the next layer's all-gather during the current layer's compute &mdash; this hides the comm and is what makes FSDP's $3\\times$ traffic affordable."
+            "<strong>Overlap</strong>: prefetch the next layer's all-gather during the current layer's compute &mdash; this hides the comm and is what makes FSDP's \\(3\\times\\) traffic affordable."
           ]
         },
         {
@@ -211,7 +210,7 @@ registerLecture({
           "lang": "python"
         },
         {
-          "callout": "Two all-gathers + one reduce-scatter = $3\\times$ #params, exactly the Lecture-7 number. PyTorch ships this as <code>FullyShardedDataParallel</code>; on Jax/TPU you'd just declare the sharding and let the compiler emit these collectives. Building it from primitives is how you understand what those one-liners actually cost.",
+          "callout": "Two all-gathers + one reduce-scatter = \\(3\\times\\) #params, exactly the Lecture-7 number. PyTorch ships this as <code>FullyShardedDataParallel</code>; on Jax/TPU you'd just declare the sharding and let the compiler emit these collectives. Building it from primitives is how you understand what those one-liners actually cost.",
           "kind": "key"
         }
       ]

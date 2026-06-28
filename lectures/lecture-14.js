@@ -1,5 +1,4 @@
-/* CS336 Companion lecture data. Auto-formatted; quiz answer positions
-   round-robin-balanced across A/B/C/D. Edit content here; keep it pure data. */
+/* CS336 Companion lecture data (math: \(..\)/\[..\]; $ is literal). */
 registerLecture({
   "id": 14,
   "estMinutes": 21,
@@ -17,12 +16,12 @@ registerLecture({
       "title": "Filtering is one problem in three disguises",
       "blocks": [
         {
-          "p": "Almost every filter is the same task: given a small <strong>target</strong> set $T$ (what you want — say, Wikipedia-like text) and a huge <strong>raw</strong> set $R$, find the subset $T' \\subseteq R$ that looks like $T$. Two desiderata pull against each other:"
+          "p": "Almost every filter is the same task: given a small <strong>target</strong> set \\(T\\) (what you want — say, Wikipedia-like text) and a huge <strong>raw</strong> set \\(R\\), find the subset \\(T' \\subseteq R\\) that looks like \\(T\\). Two desiderata pull against each other:"
         },
         {
           "list": [
-            "<strong>Generalize</strong> from $T$: you want $T'$ broader than $T$, not a memorized copy of it.",
-            "<strong>Be extremely fast</strong>: the scorer runs over all of $R$, which is enormous — so it must be a cheap proxy, not a transformer."
+            "<strong>Generalize</strong> from \\(T\\): you want $T'$ broader than \\(T\\), not a memorized copy of it.",
+            "<strong>Be extremely fast</strong>: the scorer runs over all of \\(R\\), which is enormous — so it must be a cheap proxy, not a transformer."
           ]
         },
         {
@@ -39,20 +38,20 @@ registerLecture({
             "rows": [
               [
                 "KenLM",
-                "generative model of $T$",
-                "$p_T(x)$",
+                "generative model of \\(T\\)",
+                "\\(p_T(x)\\)",
                 "score ≥ threshold (stochastic)"
               ],
               [
                 "fastText",
                 "discriminative classifier",
-                "$p(T \\mid x)$",
+                "\\(p(T \\mid x)\\)",
                 "score ≥ threshold (stochastic)"
               ],
               [
                 "DSIR",
                 "importance resampling",
-                "$p_T(x)/p_R(x)$",
+                "\\(p_T(x)/p_R(x)\\)",
                 "resample ∝ score"
               ]
             ]
@@ -62,7 +61,7 @@ registerLecture({
           "math": "\\text{score}_{\\mathrm{DSIR}}(x) = \\frac{p_T(x)}{p_R(x)}"
         },
         {
-          "callout": "The filter need not be a good language model — it must be a fast, cheap proxy that <em>separates</em> $T$ from $R$. That is exactly why a linear fastText or a 5-gram KenLM, not a 7B transformer, does the heavy lifting at web scale. Quality is bought with throughput here, not parameters.",
+          "callout": "The filter need not be a good language model — it must be a fast, cheap proxy that <em>separates</em> \\(T\\) from \\(R\\). That is exactly why a linear fastText or a 5-gram KenLM, not a 7B transformer, does the heavy lifting at web scale. Quality is bought with throughput here, not parameters.",
           "kind": "insight"
         }
       ]
@@ -97,7 +96,7 @@ registerLecture({
           "h": "fastText: bag of word embeddings"
         },
         {
-          "p": "fastText is a linear classifier over <em>averaged word embeddings</em>. The trick is to embed-then-average: parameters are $H(V{+}K)$ instead of the $V\\cdot K$ of a bag-of-words softmax. For quality filtering there are just $K{=}2$ classes (good vs bad). n-gram features would blow up the vocabulary, so each n-gram is hashed into one of ~10M fixed bins."
+          "p": "fastText is a linear classifier over <em>averaged word embeddings</em>. The trick is to embed-then-average: parameters are \\(H(V{+}K)\\) instead of the \\(V\\cdot K\\) of a bag-of-words softmax. For quality filtering there are just \\(K{=}2\\) classes (good vs bad). n-gram features would blow up the vocabulary, so each n-gram is hashed into one of ~10M fixed bins."
         },
         {
           "code": "# fastText = bag of word *embeddings* (not bag of words):\nV, H, K = 8192, 16, 2               # vocab, hidden, classes (good vs bad)\nW = nn.Embedding(V, H)              # V x H  (embeddings shared across classes)\nU = nn.Linear(H, K)                 # H x K\n# y = softmax(U(W(x).mean(dim=0)))  -> only H*(V + K) params, not V*K\n\n# n-gram features are unbounded -> hash them into a fixed number of bins:\nnum_bins = 10_000_000\nhashed = [mmh3.hash(ngram) % num_bins for ngram in ngrams]",
@@ -107,14 +106,14 @@ registerLecture({
           "h": "DSIR: importance resampling"
         },
         {
-          "p": "DSIR models <em>both</em> the target and raw distributions (as hashed-n-gram models) and resamples raw data with weight $p_T/p_R$ — sampling from the proposal $q$, reweighting by $p/q$, then resampling. It is slightly better than fastText on GLUE at similar compute, and is more principled about preserving diversity."
+          "p": "DSIR models <em>both</em> the target and raw distributions (as hashed-n-gram models) and resamples raw data with weight \\(p_T/p_R\\) — sampling from the proposal \\(q\\), reweighting by \\(p/q\\), then resampling. It is slightly better than fastText on GLUE at similar compute, and is more principled about preserving diversity."
         },
         {
           "code": "# DSIR: importance resampling toward target p using proposal q\nvocabulary, p, q, n = [0, 1, 2, 3], [.1, .2, .3, .4], [.4, .3, .2, .1], 100\n\nsamples = np.random.choice(vocabulary, p=q, size=n)   # 1. sample from q\nw = [p[x] / q[x] for x in samples]                    # 2. weight by p/q\nw = [wi / sum(w) for wi in w]                          #    normalize\nsamples = np.random.choice(samples, p=w, size=n)      # 3. resample -> ~ p",
           "lang": "python"
         },
         {
-          "callout": "All three fit one template — estimate a model from $T$ (and maybe $R$), derive a score, keep by score. Generative ($p_T$), discriminative ($p(T\\mid x)$), and ratio ($p_T/p_R$) are the same idea at different angles; you can swap fastText for BERT or Llama if you can afford the FLOPs.",
+          "callout": "All three fit one template — estimate a model from \\(T\\) (and maybe \\(R\\)), derive a score, keep by score. Generative (\\(p_T\\)), discriminative (\\(p(T\\mid x)\\)), and ratio (\\(p_T/p_R\\)) are the same idea at different angles; you can swap fastText for BERT or Llama if you can afford the FLOPs.",
           "kind": "connection"
         }
       ]
@@ -302,26 +301,26 @@ registerLecture({
           "h": "Bloom filters: approximate set membership"
         },
         {
-          "p": "A Bloom filter is a bit array plus $k$ hash functions: to insert, set the $k$ bits; to query, AND the $k$ bits. The error is <strong>one-sided</strong> — a 'no' is definite, a 'yes' may be a false positive — and you can insert but never delete. It is dramatically more memory-efficient than storing every item."
+          "p": "A Bloom filter is a bit array plus \\(k\\) hash functions: to insert, set the \\(k\\) bits; to query, AND the \\(k\\) bits. The error is <strong>one-sided</strong> — a 'no' is definite, a 'yes' may be a false positive — and you can insert but never delete. It is dramatically more memory-efficient than storing every item."
         },
         {
           "code": "def build_table(items, m, k):              # m bins, k hash functions\n    table = bitarray(m); table.setall(0)\n    for item in items:\n        for seed in range(k):\n            table[mmh3.hash(item, seed) % m] = 1\n    return table\n\ndef query(table, item, m, k):              # 'yes' iff all k bits are set\n    return all(table[mmh3.hash(item, seed) % m] for seed in range(k))",
           "lang": "python"
         },
         {
-          "p": "Insert $n$ items into $m$ bins with $k$ hashes; the false-positive rate (assuming independence) is"
+          "p": "Insert \\(n\\) items into \\(m\\) bins with \\(k\\) hashes; the false-positive rate (assuming independence) is"
         },
         {
           "math": "f = \\left(1 - \\left(1 - \\frac{1}{m}\\right)^{kn}\\right)^{k}"
         },
         {
-          "p": "Minimizing over $k$ for a fixed memory ratio $m/n$ gives the optimum"
+          "p": "Minimizing over \\(k\\) for a fixed memory ratio \\(m/n\\) gives the optimum"
         },
         {
           "math": "k^{\\star} = \\frac{m}{n}\\,\\ln 2 \\qquad\\Longrightarrow\\qquad f = \\left(\\tfrac{1}{2}\\right)^{k^{\\star}}"
         },
         {
-          "callout": "More hash functions is <em>not</em> monotonically better: past $k^{\\star}$ you saturate the bit array and the false-positive rate climbs again. Bloom's one-sided error is exactly what dedup wants — a false 'yes' merely drops a unique doc (a tiny, tolerable loss), and there is no false 'no'. Dolma sets $f = 10^{-15}$ on paragraphs.",
+          "callout": "More hash functions is <em>not</em> monotonically better: past \\(k^{\\star}\\) you saturate the bit array and the false-positive rate climbs again. Bloom's one-sided error is exactly what dedup wants — a false 'yes' merely drops a unique doc (a tiny, tolerable loss), and there is no false 'no'. Dolma sets \\(f = 10^{-15}\\) on paragraphs.",
           "kind": "note"
         }
       ]
@@ -344,7 +343,7 @@ registerLecture({
           "h": "MinHash: collisions that encode similarity"
         },
         {
-          "p": "A <strong>MinHash</strong> is a random hash $h$ whose collision probability <em>equals</em> the Jaccard similarity. A random hash induces a permutation of all items; $h(S)$ is the minimum hash over $S$, so the minima agree exactly when the globally-first item falls in $A \\cap B$. Unusually, you <em>want</em> informative collisions, not to avoid them — and averaging many MinHashes gives an unbiased Jaccard estimate."
+          "p": "A <strong>MinHash</strong> is a random hash \\(h\\) whose collision probability <em>equals</em> the Jaccard similarity. A random hash induces a permutation of all items; \\(h(S)\\) is the minimum hash over \\(S\\), so the minima agree exactly when the globally-first item falls in \\(A \\cap B\\). Unusually, you <em>want</em> informative collisions, not to avoid them — and averaging many MinHashes gives an unbiased Jaccard estimate."
         },
         {
           "math": "\\Pr[\\,h(A) = h(B)\\,] = J(A, B)"
@@ -357,7 +356,7 @@ registerLecture({
           "h": "LSH: sharpening a probability into a threshold"
         },
         {
-          "p": "One MinHash is far too noisy. Use $n = b \\cdot r$ hashes arranged as $b$ bands of $r$ rows each; $A$ and $B$ collide if <em>some</em> band matches on <em>all</em> $r$ of its hashes — an AND within a band, OR across bands. That AND-OR structure turns the soft probability into a near-step at a threshold."
+          "p": "One MinHash is far too noisy. Use \\(n = b \\cdot r\\) hashes arranged as \\(b\\) bands of \\(r\\) rows each; \\(A\\) and \\(B\\) collide if <em>some</em> band matches on <em>all</em> \\(r\\) of its hashes — an AND within a band, OR across bands. That AND-OR structure turns the soft probability into a near-step at a threshold."
         },
         {
           "math": "P_{\\text{collide}}(s) = 1 - (1 - s^{r})^{b}"
@@ -367,7 +366,7 @@ registerLecture({
           "lang": "python"
         },
         {
-          "p": "Tuning: increasing $r$ <strong>sharpens</strong> the curve and shifts the threshold right (stricter — harder to match); increasing $b$ shifts it left (looser). The threshold sits near"
+          "p": "Tuning: increasing \\(r\\) <strong>sharpens</strong> the curve and shifts the threshold right (stricter — harder to match); increasing \\(b\\) shifts it left (looser). The threshold sits near"
         },
         {
           "math": "s^{\\star} \\approx \\left(\\tfrac{1}{b}\\right)^{1/r}"
@@ -393,7 +392,7 @@ registerLecture({
           ]
         },
         {
-          "p": "<strong>DoReMi</strong> (Xie et al. 2023) tunes the mixture automatically. Train a small reference model; then train a small <em>proxy</em> with Group DRO that adjusts domain weights $\\alpha$ to maximize worst-case <strong>excess loss</strong> (proxy minus reference); finally train the large model with those weights."
+          "p": "<strong>DoReMi</strong> (Xie et al. 2023) tunes the mixture automatically. Train a small reference model; then train a small <em>proxy</em> with Group DRO that adjusts domain weights \\(\\alpha\\) to maximize worst-case <strong>excess loss</strong> (proxy minus reference); finally train the large model with those weights."
         },
         {
           "math": "\\min_{\\theta}\\; \\max_{\\alpha \\in \\Delta}\\; \\sum_{i} \\alpha_i \\left(\\ell_i(\\theta) - \\ell_i(\\theta_{\\mathrm{ref}})\\right)"
@@ -490,7 +489,7 @@ registerLecture({
     {
       "id": 4,
       "section": "Classifiers",
-      "q": "fastText uses $H(V+K)$ parameters instead of a bag-of-words classifier's $V \\cdot K$. Why?",
+      "q": "fastText uses \\(H(V+K)\\) parameters instead of a bag-of-words classifier's \\(V \\cdot K\\). Why?",
       "options": [
         "It hashes the vocabulary down to H bins",
         "It uses 16-bit floats instead of 32-bit",
@@ -620,7 +619,7 @@ registerLecture({
     {
       "id": 14,
       "section": "Bloom filters",
-      "q": "For fixed m/n, the optimal number of hash functions is $k = (m/n)\\ln 2$, giving $f = (1/2)^k$. A consequence is:",
+      "q": "For fixed m/n, the optimal number of hash functions is \\(k = (m/n)\\ln 2\\), giving \\(f = (1/2)^k\\). A consequence is:",
       "options": [
         "More hash functions always lower the false-positive rate",
         "Past the optimum, adding hash functions saturates the bit array and raises the false-positive rate",

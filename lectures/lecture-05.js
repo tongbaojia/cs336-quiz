@@ -1,5 +1,4 @@
-/* CS336 Companion lecture data. Auto-formatted; quiz answer positions
-   round-robin-balanced across A/B/C/D. Edit content here; keep it pure data. */
+/* CS336 Companion lecture data (math: \(..\)/\[..\]; $ is literal). */
 registerLecture({
   "id": 5,
   "estMinutes": 20,
@@ -194,13 +193,13 @@ registerLecture({
       "title": "Compute-bound vs memory-bound: the roofline",
       "blocks": [
         {
-          "p": "Every kernel is limited by either compute (peak FLOP/s) or memory (peak bytes/s) — never both at once. Which one is set by <strong>arithmetic intensity</strong> $I = \\text{FLOPs} / \\text{bytes moved}$ (bytes to/from HBM). The roofline model makes this exact:"
+          "p": "Every kernel is limited by either compute (peak FLOP/s) or memory (peak bytes/s) — never both at once. Which one is set by <strong>arithmetic intensity</strong> \\(I = \\text{FLOPs} / \\text{bytes moved}\\) (bytes to/from HBM). The roofline model makes this exact:"
         },
         {
           "math": "\\text{attainable FLOP/s} \\;=\\; \\min\\!\\big(\\pi_{\\text{peak}},\\; I \\cdot \\beta\\big), \\qquad I_{\\text{ridge}} \\;=\\; \\frac{\\pi_{\\text{peak}}}{\\beta}"
         },
         {
-          "p": "Below the <strong>ridge point</strong> $I_{\\text{ridge}}$ you are memory-bound (the $I\\cdot\\beta$ slope); above it, compute-bound (the flat $\\pi_{\\text{peak}}$ roof). Plug in an H100: $\\pi_{\\text{peak}} \\approx 990\\,\\text{TFLOP/s}$ (dense bf16), $\\beta = 3.35\\,\\text{TB/s}$, so $I_{\\text{ridge}} \\approx 295$ FLOP/byte. (A100 bf16: $312/2.0 \\approx 156$.)"
+          "p": "Below the <strong>ridge point</strong> \\(I_{\\text{ridge}}\\) you are memory-bound (the \\(I\\cdot\\beta\\) slope); above it, compute-bound (the flat \\(\\pi_{\\text{peak}}\\) roof). Plug in an H100: \\(\\pi_{\\text{peak}} \\approx 990\\,\\text{TFLOP/s}\\) (dense bf16), \\(\\beta = 3.35\\,\\text{TB/s}\\), so \\(I_{\\text{ridge}} \\approx 295\\) FLOP/byte. (A100 bf16: \\(312/2.0 \\approx 156\\).)"
         },
         {
           "callout": "On an H100 you must do <strong>~300 bf16 FLOPs for every byte you pull from HBM</strong> just to keep the tensor cores busy. Anything less and the matmul units idle, waiting on memory. That single ratio — compute ÷ bandwidth — is the design constraint behind fusion, tiling, and FlashAttention.",
@@ -210,16 +209,16 @@ registerLecture({
           "h": "Do the arithmetic"
         },
         {
-          "p": "<strong>Elementwise ReLU</strong> (read $x$, write $x$, 1 FLOP): in fp32 you move 8 bytes/element → $I = 1/8 = 0.125$; in fp16, 4 bytes → $I = 0.25$ FLOP/byte. Both are ~1000× below the ridge → hopelessly <em>memory-bound</em>. Runtime is set by bytes moved, so halving precision ~halves the time. Normalization, softmax, and activations all live here."
+          "p": "<strong>Elementwise ReLU</strong> (read \\(x\\), write \\(x\\), 1 FLOP): in fp32 you move 8 bytes/element → \\(I = 1/8 = 0.125\\); in fp16, 4 bytes → \\(I = 0.25\\) FLOP/byte. Both are ~1000× below the ridge → hopelessly <em>memory-bound</em>. Runtime is set by bytes moved, so halving precision ~halves the time. Normalization, softmax, and activations all live here."
         },
         {
           "math": "I_{\\text{matmul}}(n) \\;=\\; \\frac{2n^3}{2\\,(3n^2)} \\;=\\; \\frac{n}{3}\\ \\text{FLOP/byte} \\quad(\\text{square } n\\times n,\\ \\text{fp16, no reuse})"
         },
         {
-          "p": "<strong>Matmul</strong> is the opposite: intensity grows with $n$ (read/write $3n^2$ elements but do $2n^3$ FLOPs). A big square matmul clears the ridge easily ($n/3 &gt; 300$ once $n \\gtrsim 900$) and is compute-bound; a skinny GEMV — batch-1 decode, $n=1$ on one side — is all memory and badly memory-bound. Same op, different regime, decided by shape."
+          "p": "<strong>Matmul</strong> is the opposite: intensity grows with \\(n\\) (read/write \\(3n^2\\) elements but do \\(2n^3\\) FLOPs). A big square matmul clears the ridge easily (\\(n/3 &gt; 300\\) once \\(n \\gtrsim 900\\)) and is compute-bound; a skinny GEMV — batch-1 decode, \\(n=1\\) on one side — is all memory and badly memory-bound. Same op, different regime, decided by shape."
         },
         {
-          "callout": "Compute has outrun bandwidth for decades — the <em>AI memory wall</em> (Gholami et al.). Each GPU generation pushes $I_{\\text{ridge}}$ higher, so more workloads slide onto the memory-bound side and data-movement tricks matter <em>more</em> every year, not less.",
+          "callout": "Compute has outrun bandwidth for decades — the <em>AI memory wall</em> (Gholami et al.). Each GPU generation pushes \\(I_{\\text{ridge}}\\) higher, so more workloads slide onto the memory-bound side and data-movement tricks matter <em>more</em> every year, not less.",
           "kind": "connection"
         }
       ]
@@ -285,7 +284,7 @@ registerLecture({
           "h": "Fusion — stop shipping to the warehouse"
         },
         {
-          "p": "Treat the GPU as a factory and HBM as a warehouse. Each unfused op ships its inputs in from the warehouse and writes results back out — pure overhead if the next op needs them immediately. Computing $\\sin^2 x + \\cos^2 x$ naively launches <strong>5 kernels</strong> (5 HBM round-trips); fused, it is <strong>one</strong> kernel that reads $x$ once and writes the result once. <code>torch.compile</code> finds these pointwise fusions automatically."
+          "p": "Treat the GPU as a factory and HBM as a warehouse. Each unfused op ships its inputs in from the warehouse and writes results back out — pure overhead if the next op needs them immediately. Computing \\(\\sin^2 x + \\cos^2 x\\) naively launches <strong>5 kernels</strong> (5 HBM round-trips); fused, it is <strong>one</strong> kernel that reads \\(x\\) once and writes the result once. <code>torch.compile</code> finds these pointwise fusions automatically."
         },
         {
           "code": "import torch\n\ndef f(x):\n    return torch.sin(x) ** 2 + torch.cos(x) ** 2\n\ny = f(x)                 # eager: ~5 pointwise kernels, 5 HBM round-trips\n\nfast = torch.compile(f)  # fused: ONE kernel, read x once, write y once\ny = fast(x)",
@@ -301,17 +300,17 @@ registerLecture({
           "h": "Tiling — the big one"
         },
         {
-          "p": "Split the matmul into tiles: load an $A$-tile and $B$-tile into shared memory, compute every partial product that uses them, then advance. Each input is read from HBM $N/T$ times instead of $N$ times (and $T$ times from fast SRAM) — a factor-$T$ cut in global reads, and the tile loads come out coalesced."
+          "p": "Split the matmul into tiles: load an \\(A\\)-tile and \\(B\\)-tile into shared memory, compute every partial product that uses them, then advance. Each input is read from HBM \\(N/T\\) times instead of \\(N\\) times (and \\(T\\) times from fast SRAM) — a factor-\\(T\\) cut in global reads, and the tile loads come out coalesced."
         },
         {
           "math": "\\text{global reads per element:}\\quad N \\;\\longrightarrow\\; N/T \\qquad(\\text{a } T\\times \\text{ reduction})"
         },
         {
-          "callout": "Tiling has two quantization cliffs. <strong>Tile quantization:</strong> if a matrix dim isn't a multiple of the tile, edge tiles are padded → wasted compute. <strong>Wave quantization:</strong> a 256×128 tile on a 1792² matmul makes $7\\times14 = 98$ tiles ≤ 108 SMs → one clean wave; bump to 1793² and it's $8\\times15 = 120$ tiles &gt; 108, so a <em>second</em> wave runs just 12 tiles while 96 SMs sit idle. A 0.06% bigger matrix ≈ 2× slower. \"Bigger is faster\" is really \"aligned to the hardware is faster.\"",
+          "callout": "Tiling has two quantization cliffs. <strong>Tile quantization:</strong> if a matrix dim isn't a multiple of the tile, edge tiles are padded → wasted compute. <strong>Wave quantization:</strong> a 256×128 tile on a 1792² matmul makes \\(7\\times14 = 98\\) tiles ≤ 108 SMs → one clean wave; bump to 1793² and it's \\(8\\times15 = 120\\) tiles &gt; 108, so a <em>second</em> wave runs just 12 tiles while 96 SMs sit idle. A 0.06% bigger matrix ≈ 2× slower. \"Bigger is faster\" is really \"aligned to the hardware is faster.\"",
           "kind": "pitfall"
         },
         {
-          "callout": "All three tricks are the same idea read through the roofline: the ~300 FLOP/byte compute:bandwidth ratio is the enemy. Fusion and recomputation <em>cut the bytes</em>; tiling <em>raises reuse</em> so each HBM byte feeds ~$T\\times$ more FLOPs. Kernel design is bandwidth accounting.",
+          "callout": "All three tricks are the same idea read through the roofline: the ~300 FLOP/byte compute:bandwidth ratio is the enemy. Fusion and recomputation <em>cut the bytes</em>; tiling <em>raises reuse</em> so each HBM byte feeds ~\\(T\\times\\) more FLOPs. Kernel design is bandwidth accounting.",
           "kind": "insight"
         }
       ]
@@ -321,16 +320,16 @@ registerLecture({
       "title": "Putting it together: FlashAttention",
       "blocks": [
         {
-          "p": "Attention is $\\text{softmax}(QK^\\top/\\sqrt{d})\\,V$ — three matmuls with a softmax in between. The naive kernel materializes the full $N\\times N$ score matrix $S$ in HBM (write it, read it back for softmax, read again for the $V$ matmul). That is $O(N^2)$ memory and $O(N^2)$ HBM traffic — memory-bound, and the reason long context is expensive."
+          "p": "Attention is \\(\\text{softmax}(QK^\\top/\\sqrt{d})\\,V\\) — three matmuls with a softmax in between. The naive kernel materializes the full \\(N\\times N\\) score matrix \\(S\\) in HBM (write it, read it back for softmax, read again for the \\(V\\) matmul). That is \\(O(N^2)\\) memory and \\(O(N^2)\\) HBM traffic — memory-bound, and the reason long context is expensive."
         },
         {
-          "p": "<strong>FlashAttention</strong> (Dao et al. 2022) is this entire lecture applied to attention: <em>tile</em> the $Q/K/V$ matmuls so blocks of $S$ live only in SRAM, <em>fuse</em> the exponential/softmax into the same kernel, and never write the full $S$ to HBM. The result is $O(N)$ HBM traffic instead of $O(N^2)$ — a big wall-clock and memory win — and it is <strong>exact</strong>, not an approximation."
+          "p": "<strong>FlashAttention</strong> (Dao et al. 2022) is this entire lecture applied to attention: <em>tile</em> the \\(Q/K/V\\) matmuls so blocks of \\(S\\) live only in SRAM, <em>fuse</em> the exponential/softmax into the same kernel, and never write the full \\(S\\) to HBM. The result is \\(O(N)\\) HBM traffic instead of \\(O(N^2)\\) — a big wall-clock and memory win — and it is <strong>exact</strong>, not an approximation."
         },
         {
           "h": "The one hard part — online softmax"
         },
         {
-          "p": "Softmax needs a row max and a row sum, but tiling only ever sees one block of the row at a time. <strong>Online softmax</strong> (Milakov &amp; Gimelshein 2018) keeps a running max $m$ and running denominator $\\ell$, and on each new tile rescales the accumulator by $e^{\\,m_{\\text{old}} - m_{\\text{new}}}$ — a telescoping update that produces the <em>exact</em> softmax tile-by-tile, never needing the whole row in memory."
+          "p": "Softmax needs a row max and a row sum, but tiling only ever sees one block of the row at a time. <strong>Online softmax</strong> (Milakov &amp; Gimelshein 2018) keeps a running max \\(m\\) and running denominator \\(\\ell\\), and on each new tile rescales the accumulator by \\(e^{\\,m_{\\text{old}} - m_{\\text{new}}}\\) — a telescoping update that produces the <em>exact</em> softmax tile-by-tile, never needing the whole row in memory."
         },
         {
           "math": "m_i = \\max\\!\\big(m_{i-1},\\, \\tilde m_i\\big), \\qquad \\ell_i = e^{\\,m_{i-1}-m_i}\\,\\ell_{i-1} \\;+\\; \\textstyle\\sum_j e^{\\,x_{ij}-m_i}"

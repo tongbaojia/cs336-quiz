@@ -1,5 +1,4 @@
-/* CS336 Companion lecture data. Auto-formatted; quiz answer positions
-   round-robin-balanced across A/B/C/D. Edit content here; keep it pure data. */
+/* CS336 Companion lecture data (math: \(..\)/\[..\]; $ is literal). */
 registerLecture({
   "id": 1,
   "estMinutes": 18,
@@ -225,16 +224,16 @@ registerLecture({
       "title": "Bridge to Lecture 2: the 6ND rule",
       "blocks": [
         {
-          "p": "Lecture 1 ends pointing at resource accounting. The headline you'll use constantly: training a model with $N$ parameters on $D$ tokens costs about"
+          "p": "Lecture 1 ends pointing at resource accounting. The headline you'll use constantly: training a model with \\(N\\) parameters on \\(D\\) tokens costs about"
         },
         {
           "math": "C_{\\text{train}} \\;\\approx\\; 6ND \\;\\text{FLOPs}"
         },
         {
-          "p": "Counting per weight per token: the forward pass is one multiply-add ($2$ FLOPs); the backward pass is two ($4$ FLOPs) — once for the weight's own gradient, once to relay the gradient to the previous layer. So $2 + 4 = 6$. Inference (forward only) is $\\approx 2N$ per token. Lecture 2 makes this rigorous and adds memory accounting."
+          "p": "Counting per weight per token: the forward pass is one multiply-add (\\(2\\) FLOPs); the backward pass is two (\\(4\\) FLOPs) — once for the weight's own gradient, once to relay the gradient to the previous layer. So \\(2 + 4 = 6\\). Inference (forward only) is \\(\\approx 2N\\) per token. Lecture 2 makes this rigorous and adds memory accounting."
         },
         {
-          "callout": "This $6ND$ estimate counts only parameter matmuls. It ignores the non-parameter attention FLOPs ($QK^\\top$, attention·$V$), which scale with sequence length squared — fine for modest context, an undercount for long context.",
+          "callout": "This \\(6ND\\) estimate counts only parameter matmuls. It ignores the non-parameter attention FLOPs (\\(QK^\\top\\), attention·\\(V\\)), which scale with sequence length squared — fine for modest context, an undercount for long context.",
           "kind": "note"
         }
       ]

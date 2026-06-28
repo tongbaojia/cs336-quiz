@@ -1,5 +1,4 @@
-/* CS336 Companion lecture data. Auto-formatted; quiz answer positions
-   round-robin-balanced across A/B/C/D. Edit content here; keep it pure data. */
+/* CS336 Companion lecture data (math: \(..\)/\[..\]; $ is literal). */
 registerLecture({
   "id": 17,
   "estMinutes": 21,
@@ -17,7 +16,7 @@ registerLecture({
       "title": "RL for language models: the setup",
       "blocks": [
         {
-          "p": "Frame post-training as a tiny MDP over tokens. The <strong>state</strong> $s$ is the prompt plus the response generated so far; an <strong>action</strong> $a$ is the next token; the <strong>transition</strong> is deterministic, $s' = s + a$; and the <strong>policy</strong> $\\pi_\\theta(a \\mid s)$ is just a (fine-tuned) language model. For notation we let $a$ denote the entire response and $R(s, a)$ the terminal reward."
+          "p": "Frame post-training as a tiny MDP over tokens. The <strong>state</strong> \\(s\\) is the prompt plus the response generated so far; an <strong>action</strong> \\(a\\) is the next token; the <strong>transition</strong> is deterministic, \\(s' = s + a\\); and the <strong>policy</strong> \\(\\pi_\\theta(a \\mid s)\\) is just a (fine-tuned) language model. For notation we let \\(a\\) denote the entire response and \\(R(s, a)\\) the terminal reward."
         },
         {
           "list": [
@@ -31,7 +30,7 @@ registerLecture({
           "math": "J(\\theta) = \\mathbb{E}_{\\,s \\sim p(\\cdot),\\; a \\sim \\pi_\\theta(\\cdot \\mid s)}\\big[\\, R(s, a) \\,\\big]"
         },
         {
-          "callout": "<strong>Objective:</strong> maximize expected reward $J(\\theta) = \\mathbb{E}[R]$, the expectation taken over prompts $s$ and sampled response tokens $a \\sim \\pi_\\theta$. Everything below is a way to estimate $\\nabla_\\theta J$ with low enough variance to actually learn.",
+          "callout": "<strong>Objective:</strong> maximize expected reward \\(J(\\theta) = \\mathbb{E}[R]\\), the expectation taken over prompts \\(s\\) and sampled response tokens \\(a \\sim \\pi_\\theta\\). Everything below is a way to estimate \\(\\nabla_\\theta J\\) with low enough variance to actually learn.",
           "kind": "key"
         },
         {
@@ -49,16 +48,16 @@ registerLecture({
       "title": "Policy gradient / REINFORCE",
       "blocks": [
         {
-          "p": "We want $\\nabla_\\theta J$, but $a$ is sampled <em>from</em> $\\pi_\\theta$, so the parameter appears in the sampling distribution. The <strong>log-derivative (REINFORCE) trick</strong> moves the gradient inside the expectation using $\\nabla_\\theta \\pi = \\pi\\, \\nabla_\\theta \\log \\pi$:"
+          "p": "We want \\(\\nabla_\\theta J\\), but \\(a\\) is sampled <em>from</em> \\(\\pi_\\theta\\), so the parameter appears in the sampling distribution. The <strong>log-derivative (REINFORCE) trick</strong> moves the gradient inside the expectation using \\(\\nabla_\\theta \\pi = \\pi\\, \\nabla_\\theta \\log \\pi\\):"
         },
         {
           "math": "\\begin{aligned} \\nabla_\\theta J &= \\int p(s)\\, \\nabla_\\theta \\pi_\\theta(a \\mid s)\\, R(s,a) \\\\ &= \\int p(s)\\, \\pi_\\theta(a \\mid s)\\, \\nabla_\\theta \\log \\pi_\\theta(a \\mid s)\\, R(s,a) \\\\ &= \\mathbb{E}\\big[\\, \\nabla_\\theta \\log \\pi_\\theta(a \\mid s)\\, R(s,a) \\,\\big] \\end{aligned}"
         },
         {
-          "p": "This is <strong>REINFORCE</strong>: sample a prompt $s$, sample a response $a \\sim \\pi_\\theta$, and ascend $\\nabla_\\theta \\log \\pi_\\theta(a \\mid s)\\, R(s,a)$. Structurally it is identical to the SFT cross-entropy gradient — only now each example is <em>weighted</em> by its reward."
+          "p": "This is <strong>REINFORCE</strong>: sample a prompt \\(s\\), sample a response \\(a \\sim \\pi_\\theta\\), and ascend \\(\\nabla_\\theta \\log \\pi_\\theta(a \\mid s)\\, R(s,a)\\). Structurally it is identical to the SFT cross-entropy gradient — only now each example is <em>weighted</em> by its reward."
         },
         {
-          "callout": "With a binary verifiable reward $R \\in \\{0, 1\\}$, REINFORCE updates only on correct responses: it is SFT on the model's own successes (à la STaR / rejection sampling), except the dataset is <strong>on-policy</strong> — it shifts every time $\\pi_\\theta$ moves.",
+          "callout": "With a binary verifiable reward \\(R \\in \\{0, 1\\}\\), REINFORCE updates only on correct responses: it is SFT on the model's own successes (à la STaR / rejection sampling), except the dataset is <strong>on-policy</strong> — it shifts every time \\(\\pi_\\theta\\) moves.",
           "kind": "connection"
         },
         {
@@ -66,7 +65,7 @@ registerLecture({
           "lang": "python"
         },
         {
-          "callout": "<strong>High variance.</strong> Verifiable rewards are sparse — early in training almost every sample gets $R = 0$, so the gradient is mostly zeros punctuated by rare spikes. (Learned RLHF reward models are smoother, but hackable.) Taming this variance is the rest of the lecture.",
+          "callout": "<strong>High variance.</strong> Verifiable rewards are sparse — early in training almost every sample gets \\(R = 0\\), so the gradient is mostly zeros punctuated by rare spikes. (Learned RLHF reward models are smoother, but hackable.) Taming this variance is the rest of the lecture.",
           "kind": "pitfall"
         }
       ]
@@ -76,17 +75,17 @@ registerLecture({
       "title": "Baselines, advantage, and variance reduction",
       "blocks": [
         {
-          "p": "Subtract a <strong>baseline</strong> $b(s)$ that depends on the state but not the action. The estimator stays unbiased, but its variance can drop dramatically:"
+          "p": "Subtract a <strong>baseline</strong> \\(b(s)\\) that depends on the state but not the action. The estimator stays unbiased, but its variance can drop dramatically:"
         },
         {
           "math": "\\nabla_\\theta J = \\mathbb{E}\\big[\\, \\nabla_\\theta \\log \\pi_\\theta(a \\mid s)\\,\\big(R(s,a) - b(s)\\big) \\,\\big]"
         },
         {
-          "callout": "Unbiased because $\\mathbb{E}_a[\\nabla_\\theta \\log \\pi_\\theta] = \\sum_a \\nabla_\\theta \\pi_\\theta = \\nabla_\\theta \\sum_a \\pi_\\theta = \\nabla_\\theta 1 = 0$. Since $b(s)$ is constant in $a$, the extra term $\\mathbb{E}[\\nabla_\\theta \\log \\pi_\\theta\\, b(s)] = 0$ — the baseline moves the mean of nothing, only the variance.",
+          "callout": "Unbiased because \\(\\mathbb{E}_a[\\nabla_\\theta \\log \\pi_\\theta] = \\sum_a \\nabla_\\theta \\pi_\\theta = \\nabla_\\theta \\sum_a \\pi_\\theta = \\nabla_\\theta 1 = 0\\). Since \\(b(s)\\) is constant in \\(a\\), the extra term \\(\\mathbb{E}[\\nabla_\\theta \\log \\pi_\\theta\\, b(s)] = 0\\) — the baseline moves the mean of nothing, only the variance.",
           "kind": "key"
         },
         {
-          "p": "Why it matters — two states, uniform sampling: $s_1$ with rewards $\\{11, 9\\}$ and $s_2$ with $\\{0, 2\\}$. Raw rewards reinforce $s_1 \\to a_2$ (reward 9) far more than $s_2 \\to a_2$ (reward 2), even though $a_2$ is the <em>worse</em> action in $s_1$ and the <em>better</em> action in $s_2$. Centering with $b(s_1)=10,\\ b(s_2)=1$ cuts the std of the update weights from $\\approx 5.32$ to $\\approx 1.15$."
+          "p": "Why it matters — two states, uniform sampling: \\(s_1\\) with rewards \\(\\{11, 9\\}\\) and \\(s_2\\) with \\(\\{0, 2\\}\\). Raw rewards reinforce \\(s_1 \\to a_2\\) (reward 9) far more than \\(s_2 \\to a_2\\) (reward 2), even though \\(a_2\\) is the <em>worse</em> action in \\(s_1\\) and the <em>better</em> action in \\(s_2\\). Centering with \\(b(s_1)=10,\\ b(s_2)=1\\) cuts the std of the update weights from \\(\\approx 5.32\\) to \\(\\approx 1.15\\)."
         },
         {
           "math": "b^*(s) = \\frac{\\mathbb{E}\\big[\\, \\lVert \\nabla_\\theta \\log \\pi_\\theta \\rVert^2\\, R \\mid s \\,\\big]}{\\mathbb{E}\\big[\\, \\lVert \\nabla_\\theta \\log \\pi_\\theta \\rVert^2 \\mid s \\,\\big]} \\quad\\Longrightarrow\\quad b(s) = \\mathbb{E}[R \\mid s] = V(s)"
@@ -95,10 +94,10 @@ registerLecture({
           "math": "A(s,a) = Q(s,a) - V(s), \\qquad Q(s,a) = \\mathbb{E}[R \\mid s, a], \\qquad V(s) = \\mathbb{E}[R \\mid s]"
         },
         {
-          "p": "The exact optimal baseline is awkward to compute, so the heuristic is the mean reward $b(s)=V(s)$. With that choice the baselined reward <em>is</em> the advantage $A(s,a)$ (here $Q = R$, since $a$ is the whole response with an outcome reward). In general we ascend $\\nabla_\\theta \\log \\pi_\\theta(a \\mid s)\\,\\delta$ for some advantage-like $\\delta$."
+          "p": "The exact optimal baseline is awkward to compute, so the heuristic is the mean reward \\(b(s)=V(s)\\). With that choice the baselined reward <em>is</em> the advantage \\(A(s,a)\\) (here \\(Q = R\\), since \\(a\\) is the whole response with an outcome reward). In general we ascend \\(\\nabla_\\theta \\log \\pi_\\theta(a \\mid s)\\,\\delta\\) for some advantage-like \\(\\delta\\)."
         },
         {
-          "callout": "Every method below is just a different $\\delta$: raw reward, centered reward (subtract group mean), normalized reward (divide by group std), GAE, max-reward. Lower-variance $\\delta$ ⇒ faster, more stable learning. The choice of $\\delta$ is the main design axis.",
+          "callout": "Every method below is just a different \\(\\delta\\): raw reward, centered reward (subtract group mean), normalized reward (divide by group std), GAE, max-reward. Lower-variance \\(\\delta\\) ⇒ faster, more stable learning. The choice of \\(\\delta\\) is the main design axis.",
           "kind": "insight"
         }
       ]
@@ -108,7 +107,7 @@ registerLecture({
       "title": "PPO: clipped surrogate + KL control",
       "blocks": [
         {
-          "p": "REINFORCE is strictly on-policy: each batch of rollouts buys exactly one gradient step, wasteful when generation is the expensive part. <strong>PPO</strong> reuses a batch for several steps via an importance ratio against the snapshot $\\pi_{\\theta_{\\mathrm{old}}}$ that produced the samples:"
+          "p": "REINFORCE is strictly on-policy: each batch of rollouts buys exactly one gradient step, wasteful when generation is the expensive part. <strong>PPO</strong> reuses a batch for several steps via an importance ratio against the snapshot \\(\\pi_{\\theta_{\\mathrm{old}}}\\) that produced the samples:"
         },
         {
           "math": "r_t(\\theta) = \\frac{\\pi_\\theta(a_t \\mid s_t)}{\\pi_{\\theta_{\\mathrm{old}}}(a_t \\mid s_t)}"
@@ -120,14 +119,14 @@ registerLecture({
           "math": "L^{\\mathrm{CLIP}}(\\theta) = \\mathbb{E}_t\\Big[\\, \\min\\big(\\, r_t(\\theta)\\,\\hat{A}_t,\\;\\; \\mathrm{clip}\\big(r_t(\\theta),\\, 1-\\epsilon,\\, 1+\\epsilon\\big)\\,\\hat{A}_t \\,\\big) \\,\\Big]"
         },
         {
-          "p": "The $\\min$ makes the clip one-sided: it caps the upside of moving $r$ past $1 \\pm \\epsilon$ but keeps the full penalty when the advantage is negative — a pessimistic lower bound on the true objective. The toy uses $\\epsilon = 0.01$; production PPO uses $\\epsilon \\approx 0.1$–$0.3$."
+          "p": "The \\(\\min\\) makes the clip one-sided: it caps the upside of moving \\(r\\) past \\(1 \\pm \\epsilon\\) but keeps the full penalty when the advantage is negative — a pessimistic lower bound on the true objective. The toy uses \\(\\epsilon = 0.01\\); production PPO uses \\(\\epsilon \\approx 0.1\\)–\\(0.3\\)."
         },
         {
           "code": "def compute_loss(log_probs, old_log_probs, advantages, epsilon=0.2):\n    # PPO clipped surrogate; ratios r = pi / pi_old (per token)\n    ratios    = torch.exp(log_probs - old_log_probs)\n    unclipped = ratios * advantages\n    clipped   = torch.clamp(ratios, 1 - epsilon, 1 + epsilon) * advantages\n    return -torch.minimum(unclipped, clipped).mean()",
           "lang": "python"
         },
         {
-          "callout": "<strong>Freeze $\\pi_{\\theta_{\\mathrm{old}}}$.</strong> The ratio's denominator must be a constant. If gradients flow through it, at $r = 1$ the numerator and denominator gradients cancel and you learn ~nothing — wrap the old/reference forward pass in <code>torch.no_grad()</code>.",
+          "callout": "<strong>Freeze \\(\\pi_{\\theta_{\\mathrm{old}}}\\).</strong> The ratio's denominator must be a constant. If gradients flow through it, at \\(r = 1\\) the numerator and denominator gradients cancel and you learn ~nothing — wrap the old/reference forward pass in <code>torch.no_grad()</code>.",
           "kind": "pitfall"
         },
         {
@@ -141,7 +140,7 @@ registerLecture({
       "title": "GRPO: group-relative advantage",
       "blocks": [
         {
-          "p": "To form the advantage, PPO trains a <strong>critic</strong> (value network $V(s)$) — a second large model that is finicky to fit. <strong>GRPO</strong> exploits structure unique to LMs: cheaply sample a <em>group</em> of $G$ responses per prompt, and their mean reward is an unbiased baseline. No critic at all."
+          "p": "To form the advantage, PPO trains a <strong>critic</strong> (value network \\(V(s)\\)) — a second large model that is finicky to fit. <strong>GRPO</strong> exploits structure unique to LMs: cheaply sample a <em>group</em> of \\(G\\) responses per prompt, and their mean reward is an unbiased baseline. No critic at all."
         },
         {
           "math": "\\hat{A}_i = \\frac{r_i - \\operatorname{mean}(r_1, \\dots, r_G)}{\\operatorname{std}(r_1, \\dots, r_G)}, \\qquad i = 1, \\dots, G"
@@ -151,14 +150,14 @@ registerLecture({
           "lang": "python"
         },
         {
-          "p": "This maps onto the lecture's sorting experiments: raw rewards barely learn; <strong>centered</strong> rewards (subtract the group mean) give below-average samples a negative push and produce zero update when all $G$ responses tie; dividing by the group std changes little here since all responses share a length."
+          "p": "This maps onto the lecture's sorting experiments: raw rewards barely learn; <strong>centered</strong> rewards (subtract the group mean) give below-average samples a negative push and produce zero update when all \\(G\\) responses tie; dividing by the group std changes little here since all responses share a length."
         },
         {
           "callout": "<strong>Dr. GRPO:</strong> dividing by per-group std up-weights easy/low-variance prompts, and per-token length normalization favors longer outputs — both inject bias. Dropping them removes a length bias that otherwise rewards verbosity (arXiv 2503.20783).",
           "kind": "pitfall"
         },
         {
-          "p": "GRPO also adds an <em>explicit</em> KL term $\\beta\\, \\mathbb{D}_{\\mathrm{KL}}[\\pi_\\theta \\Vert \\pi_{\\mathrm{ref}}]$ to the loss (vs InstructGPT-PPO, which shapes the per-token reward), estimated with the low-variance, always-non-negative k3 form:"
+          "p": "GRPO also adds an <em>explicit</em> KL term \\(\\beta\\, \\mathbb{D}_{\\mathrm{KL}}[\\pi_\\theta \\Vert \\pi_{\\mathrm{ref}}]\\) to the loss (vs InstructGPT-PPO, which shapes the per-token reward), estimated with the low-variance, always-non-negative k3 form:"
         },
         {
           "math": "\\mathbb{D}_{\\mathrm{KL}}\\!\\big[\\pi_\\theta \\,\\Vert\\, \\pi_{\\mathrm{ref}}\\big] \\;\\approx\\; \\frac{\\pi_{\\mathrm{ref}}}{\\pi_\\theta} - \\log\\frac{\\pi_{\\mathrm{ref}}}{\\pi_\\theta} - 1 \\;\\ge\\; 0"
@@ -184,19 +183,19 @@ registerLecture({
           "math": "\\max_{\\pi_\\theta}\\; \\mathbb{E}_{\\,x \\sim \\mathcal{D},\\; y \\sim \\pi_\\theta(\\cdot \\mid x)}\\big[\\, r(x, y) \\,\\big] \\;-\\; \\beta\\, \\mathbb{D}_{\\mathrm{KL}}\\!\\big[\\pi_\\theta(y \\mid x) \\,\\Vert\\, \\pi_{\\mathrm{ref}}(y \\mid x)\\big]"
         },
         {
-          "p": "This objective is not a black box — it has a known closed-form optimum, a reverse-KL projection of $\\pi_{\\mathrm{ref}}$ tilted by the exponentiated reward:"
+          "p": "This objective is not a black box — it has a known closed-form optimum, a reverse-KL projection of \\(\\pi_{\\mathrm{ref}}\\) tilted by the exponentiated reward:"
         },
         {
           "math": "\\pi^*(y \\mid x) = \\frac{1}{Z(x)}\\, \\pi_{\\mathrm{ref}}(y \\mid x)\\, \\exp\\!\\Big(\\tfrac{1}{\\beta}\\, r(x, y)\\Big), \\qquad Z(x) = \\sum_y \\pi_{\\mathrm{ref}}(y \\mid x)\\, \\exp\\!\\Big(\\tfrac{1}{\\beta}\\, r(x, y)\\Big)"
         },
         {
-          "p": "The trick: <em>invert</em> this to write the reward as a function of its own optimal policy — an <strong>implicit reward</strong>. The intractable partition function $Z(x)$ survives only as an additive, prompt-only term:"
+          "p": "The trick: <em>invert</em> this to write the reward as a function of its own optimal policy — an <strong>implicit reward</strong>. The intractable partition function \\(Z(x)\\) survives only as an additive, prompt-only term:"
         },
         {
           "math": "r(x, y) = \\beta\\, \\log\\frac{\\pi^*(y \\mid x)}{\\pi_{\\mathrm{ref}}(y \\mid x)} \\;+\\; \\beta\\, \\log Z(x)"
         },
         {
-          "p": "Now plug into the <strong>Bradley–Terry</strong> preference model $p(y_w \\succ y_l \\mid x) = \\sigma\\big(r(x,y_w) - r(x,y_l)\\big)$. Because $Z(x)$ depends only on $x$, it cancels in the difference — the explicit reward model vanishes, leaving a maximum-likelihood loss in $\\pi_\\theta$ alone (with $\\pi_{\\mathrm{ref}}$ frozen):"
+          "p": "Now plug into the <strong>Bradley–Terry</strong> preference model \\(p(y_w \\succ y_l \\mid x) = \\sigma\\big(r(x,y_w) - r(x,y_l)\\big)\\). Because \\(Z(x)\\) depends only on \\(x\\), it cancels in the difference — the explicit reward model vanishes, leaving a maximum-likelihood loss in \\(\\pi_\\theta\\) alone (with \\(\\pi_{\\mathrm{ref}}\\) frozen):"
         },
         {
           "math": "\\mathcal{L}_{\\mathrm{DPO}} = -\\,\\mathbb{E}_{(x, y_w, y_l) \\sim \\mathcal{D}}\\bigg[\\, \\log \\sigma\\!\\Big(\\, \\beta \\log\\frac{\\pi_\\theta(y_w \\mid x)}{\\pi_{\\mathrm{ref}}(y_w \\mid x)} \\;-\\; \\beta \\log\\frac{\\pi_\\theta(y_l \\mid x)}{\\pi_{\\mathrm{ref}}(y_l \\mid x)} \\,\\Big) \\,\\bigg]"
@@ -206,11 +205,11 @@ registerLecture({
           "lang": "python"
         },
         {
-          "callout": "DPO is a classifier on preference pairs. Its gradient scales by $\\sigma(\\hat r_l - \\hat r_w)$ — large exactly when the implicit reward currently ranks the loser above the winner — so hard, mis-ranked pairs dominate, unlike plain SFT-on-winners. No reward model, no sampling, no RL loop: just two forward passes per pair (policy and frozen reference).",
+          "callout": "DPO is a classifier on preference pairs. Its gradient scales by \\(\\sigma(\\hat r_l - \\hat r_w)\\) — large exactly when the implicit reward currently ranks the loser above the winner — so hard, mis-ranked pairs dominate, unlike plain SFT-on-winners. No reward model, no sampling, no RL loop: just two forward passes per pair (policy and frozen reference).",
           "kind": "insight"
         },
         {
-          "callout": "<strong>Over-optimization.</strong> The implicit-reward margin is unbounded, so DPO can keep widening it by driving $P(y_l)$ down faster than it lifts $P(y_w)$ — sometimes lowering the winner's absolute likelihood. With $\\beta$ too small it drifts far from $\\pi_{\\mathrm{ref}}$ and degrades; variants (IPO, cDPO, anchored/SLiC) bound the margin.",
+          "callout": "<strong>Over-optimization.</strong> The implicit-reward margin is unbounded, so DPO can keep widening it by driving \\(P(y_l)\\) down faster than it lifts \\(P(y_w)\\) — sometimes lowering the winner's absolute likelihood. With \\(\\beta\\) too small it drifts far from \\(\\pi_{\\mathrm{ref}}\\) and degrades; variants (IPO, cDPO, anchored/SLiC) bound the margin.",
           "kind": "pitfall"
         }
       ]
@@ -248,7 +247,7 @@ registerLecture({
               [
                 "Compute / step",
                 "2 forward passes, no generation",
-                "generate $G$ samples + score + update"
+                "generate \\(G\\) samples + score + update"
               ],
               [
                 "Stability knobs",
@@ -264,14 +263,14 @@ registerLecture({
           }
         },
         {
-          "callout": "On-policy is the crux. PPO/GRPO sample <em>fresh</em> rollouts each step, so the reward signal always reflects the current policy. DPO trains on a <strong>fixed</strong> preference set; as $\\pi_\\theta$ moves away from the data distribution, the gradient is increasingly off-policy and stale — 'off-policy drift'. Iterative/online DPO (regenerate pairs, relabel, repeat) recovers much of the gap.",
+          "callout": "On-policy is the crux. PPO/GRPO sample <em>fresh</em> rollouts each step, so the reward signal always reflects the current policy. DPO trains on a <strong>fixed</strong> preference set; as \\(\\pi_\\theta\\) moves away from the data distribution, the gradient is increasingly off-policy and stale — 'off-policy drift'. Iterative/online DPO (regenerate pairs, relabel, repeat) recovers much of the gap.",
           "kind": "insight"
         },
         {
           "p": "Empirically it is contested: well-tuned PPO has beaten DPO on hard reasoning/code benchmarks (Xu et al. 2024), while Llama-3 post-training leaned on rejection sampling + DPO for simplicity, and reasoning models (DeepSeek-R1, Qwen) use GRPO. There is no universal winner — it tracks task verifiability and compute budget."
         },
         {
-          "callout": "<strong>Goodhart for both.</strong> Reward over-optimization (Gao et al. 2023): pushing any proxy reward too far diverges from true quality. In PPO the proxy is the learned RM (reward hacking); in DPO it is the implicit reward (margin blow-up). KL control, early stopping, and a conservative $\\beta$ are the standard guards.",
+          "callout": "<strong>Goodhart for both.</strong> Reward over-optimization (Gao et al. 2023): pushing any proxy reward too far diverges from true quality. In PPO the proxy is the learned RM (reward hacking); in DPO it is the implicit reward (margin blow-up). KL control, early stopping, and a conservative \\(\\beta\\) are the standard guards.",
           "kind": "pitfall"
         }
       ]

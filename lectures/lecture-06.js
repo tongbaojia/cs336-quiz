@@ -1,5 +1,4 @@
-/* CS336 Companion lecture data. Auto-formatted; quiz answer positions
-   round-robin-balanced across A/B/C/D. Edit content here; keep it pure data. */
+/* CS336 Companion lecture data (math: \(..\)/\[..\]; $ is literal). */
 registerLecture({
   "id": 6,
   "estMinutes": 20,
@@ -10,7 +9,7 @@ registerLecture({
     "online softmax",
     "memory-bound"
   ],
-  "overview": "Most of a Transformer's wall-clock time is spent <em>moving bytes</em>, not multiplying them: every non-matmul op (GeLU, softmax, LayerNorm) is <strong>memory-bound</strong>. This lecture closes the gap between the programming model and the silicon — benchmark and profile to find the bottleneck, then write <strong>fused kernels</strong> (in CUDA, and especially <strong>Triton</strong>) that keep data in SRAM — culminating in <strong>FlashAttention</strong>, which tiles attention and streams the softmax so the $N \\times N$ score matrix never touches HBM.",
+  "overview": "Most of a Transformer's wall-clock time is spent <em>moving bytes</em>, not multiplying them: every non-matmul op (GeLU, softmax, LayerNorm) is <strong>memory-bound</strong>. This lecture closes the gap between the programming model and the silicon — benchmark and profile to find the bottleneck, then write <strong>fused kernels</strong> (in CUDA, and especially <strong>Triton</strong>) that keep data in SRAM — culminating in <strong>FlashAttention</strong>, which tiles attention and streams the softmax so the \\(N \\times N\\) score matrix never touches HBM.",
   "sections": [
     {
       "id": "why-kernels",
@@ -20,10 +19,10 @@ registerLecture({
           "p": "A GPU is a warehouse of slow-but-huge memory (HBM/DRAM) feeding a tiny-but-fast factory floor (registers + SRAM). A kernel's cost is dominated by how many times data crosses that gap, not by the arithmetic itself. The diagnostic is <strong>arithmetic intensity</strong>:"
         },
         {
-          "p": "$\\text{intensity} = \\dfrac{\\#\\text{FLOPs}}{\\#\\text{bytes moved}}$. High intensity ⇒ the op keeps the ALUs busy per byte fetched (<em>compute-bound</em>, good). Low intensity ⇒ the op starves waiting on bandwidth (<em>memory-bound</em>, bad)."
+          "p": "\\(\\text{intensity} = \\dfrac{\\#\\text{FLOPs}}{\\#\\text{bytes moved}}\\). High intensity ⇒ the op keeps the ALUs busy per byte fetched (<em>compute-bound</em>, good). Low intensity ⇒ the op starves waiting on bandwidth (<em>memory-bound</em>, bad)."
         },
         {
-          "callout": "<strong>The one rule:</strong> matrix multiply is compute-bound (it has $O(N)$ reuse per element and hits the tensor cores); essentially <em>everything else</em> — elementwise activations, softmax, normalization, dropout — is memory-bound. So for non-matmul ops the lever is <strong>data movement</strong>, not FLOP count.",
+          "callout": "<strong>The one rule:</strong> matrix multiply is compute-bound (it has \\(O(N)\\) reuse per element and hits the tensor cores); essentially <em>everything else</em> — elementwise activations, softmax, normalization, dropout — is memory-bound. So for non-matmul ops the lever is <strong>data movement</strong>, not FLOP count.",
           "kind": "key"
         },
         {
@@ -253,22 +252,22 @@ registerLecture({
           "p": "Softmax worked because a row fits in SRAM. Matmul and attention don't — the operands are too big — so you need <strong>tiling</strong>: chop the problem into blocks small enough to stage in shared memory, reuse them, and accumulate partial results."
         },
         {
-          "p": "Shared memory is ~10× faster than DRAM but tiny (≈164KB per block) and shared by all threads in a block. The payoff is <strong>data reuse</strong>: in $C = A B$, output elements $C_{i,j}$ and $C_{i,j+1}$ both need the same row of $A$, so loading it once into SRAM amortizes the cost across the whole tile."
+          "p": "Shared memory is ~10× faster than DRAM but tiny (≈164KB per block) and shared by all threads in a block. The payoff is <strong>data reuse</strong>: in \\(C = A B\\), output elements \\(C_{i,j}\\) and \\(C_{i,j+1}\\) both need the same row of \\(A\\), so loading it once into SRAM amortizes the cost across the whole tile."
         },
         {
           "h": "Tiled matmul"
         },
         {
           "list": [
-            "Partition $A$, $B$, $C$ into blocks.",
-            "For each pair of blocks: load the $A$-block and $B$-block from HBM into shared memory.",
+            "Partition \\(A\\), \\(B\\), \\(C\\) into blocks.",
+            "For each pair of blocks: load the \\(A\\)-block and \\(B\\)-block from HBM into shared memory.",
             "Do the mini matrix-multiply on-chip and accumulate into the running partial sum.",
-            "Write the finished $C$-block out once."
+            "Write the finished \\(C\\)-block out once."
           ],
           "ordered": true
         },
         {
-          "p": "Naive matmul costs $MKN$ reads; tiling drops that toward $MK + KN$ by reuse. Going further, the <em>order</em> in which you walk the output blocks affects L2 reuse — a grouped (L2-aware) ordering can load 54 blocks where a row-major sweep loads 90."
+          "p": "Naive matmul costs \\(MKN\\) reads; tiling drops that toward \\(MK + KN\\) by reuse. Going further, the <em>order</em> in which you walk the output blocks affects L2 reuse — a grouped (L2-aware) ordering can load 54 blocks where a row-major sweep loads 90."
         },
         {
           "callout": "<strong>Tiling = stage-in-SRAM-and-reuse.</strong> It is one of the two ingredients (the other is the online softmax in the next section) that combine to give FlashAttention. Hold this idea: never re-read from HBM what you can keep on-chip.",
@@ -281,10 +280,10 @@ registerLecture({
       "title": "Online (streaming) softmax",
       "blocks": [
         {
-          "p": "Plain softmax needs two passes over the row: one to find the max and total, one to normalize. For attention that row is a length-$N$ score vector you'd rather never store. Can we compute softmax in a <strong>single streaming pass</strong>, updating as each new value arrives?"
+          "p": "Plain softmax needs two passes over the row: one to find the max and total, one to normalize. For attention that row is a length-\\(N\\) score vector you'd rather never store. Can we compute softmax in a <strong>single streaming pass</strong>, updating as each new value arrives?"
         },
         {
-          "p": "Yes — the <em>online</em> softmax (Milakov &amp; Gimelshein, 2018) keeps two running scalars per row: the max $m$ and the denominator $d = \\sum e^{x - m}$. As each new $x_i$ arrives:"
+          "p": "Yes — the <em>online</em> softmax (Milakov &amp; Gimelshein, 2018) keeps two running scalars per row: the max \\(m\\) and the denominator \\(d = \\sum e^{x - m}\\). As each new \\(x_i\\) arrives:"
         },
         {
           "math": "m_i = \\max\\!\\left(m_{i-1},\\ x_i\\right), \\qquad d_i = d_{i-1}\\, e^{\\,m_{i-1} - m_i} \\,+\\, e^{\\,x_i - m_i}"
@@ -294,10 +293,10 @@ registerLecture({
           "kind": "insight"
         },
         {
-          "p": "After the last element the softmax is exact: $y_i = e^{\\,x_i - m_N} / d_N$. No second pass and no materialized row — just two scalars carried along."
+          "p": "After the last element the softmax is exact: \\(y_i = e^{\\,x_i - m_N} / d_N\\). No second pass and no materialized row — just two scalars carried along."
         },
         {
-          "callout": "The rescaling factor $e^{\\,m_{i-1}-m_i}$ is not optional. Every earlier term was exponentiated against the <em>old</em> max; when a new value raises the max to $m_i$ you must multiply the running denominator (and, in attention, the running output) by $e^{\\,m_{i-1}-m_i}$ to rebase them. Skip it and the normalization is wrong; drop the max-subtraction entirely and large logits overflow $e^{x}$ to inf/NaN in fp16. Softmax is shift-invariant, so subtracting the max is exact — and mandatory for stability.",
+          "callout": "The rescaling factor \\(e^{\\,m_{i-1}-m_i}\\) is not optional. Every earlier term was exponentiated against the <em>old</em> max; when a new value raises the max to \\(m_i\\) you must multiply the running denominator (and, in attention, the running output) by \\(e^{\\,m_{i-1}-m_i}\\) to rebase them. Skip it and the normalization is wrong; drop the max-subtraction entirely and large logits overflow \\(e^{x}\\) to inf/NaN in fp16. Softmax is shift-invariant, so subtracting the max is exact — and mandatory for stability.",
           "kind": "pitfall"
         }
       ]
@@ -307,10 +306,10 @@ registerLecture({
       "title": "FlashAttention: attention without the N×N",
       "blocks": [
         {
-          "p": "Standard attention computes $S = QK^\\top$ (an $N \\times N$ matrix), softmaxes it, then multiplies by $V$. Materializing $S$ and the probabilities in HBM costs $O(N^2)$ memory and, worse, $O(N^2)$ HBM reads/writes — and since attention is memory-bound, that IO <em>is</em> the runtime."
+          "p": "Standard attention computes \\(S = QK^\\top\\) (an \\(N \\times N\\) matrix), softmaxes it, then multiplies by \\(V\\). Materializing \\(S\\) and the probabilities in HBM costs \\(O(N^2)\\) memory and, worse, \\(O(N^2)\\) HBM reads/writes — and since attention is memory-bound, that IO <em>is</em> the runtime."
         },
         {
-          "p": "<strong>FlashAttention</strong> (Dao et al., 2022) fuses the whole thing into one kernel. Tile $Q$, $K$, $V$ into blocks; for each $Q$-block, loop over $K/V$-blocks, computing one score tile $S_j$ at a time in SRAM and folding it into a running output $O$ via the online softmax stats $(m, \\ell)$. The $N \\times N$ matrix is never written to HBM:"
+          "p": "<strong>FlashAttention</strong> (Dao et al., 2022) fuses the whole thing into one kernel. Tile \\(Q\\), \\(K\\), \\(V\\) into blocks; for each \\(Q\\)-block, loop over \\(K/V\\)-blocks, computing one score tile \\(S_j\\) at a time in SRAM and folding it into a running output \\(O\\) via the online softmax stats \\((m, \\ell)\\). The \\(N \\times N\\) matrix is never written to HBM:"
         },
         {
           "math": "m^{\\text{new}} = \\max\\!\\big(m,\\ \\mathrm{rowmax}(S_j)\\big), \\qquad \\ell^{\\text{new}} = e^{\\,m - m^{\\text{new}}}\\,\\ell \\,+\\, \\mathrm{rowsum}\\!\\big(e^{\\,S_j - m^{\\text{new}}}\\big)"
@@ -355,7 +354,7 @@ registerLecture({
           }
         },
         {
-          "p": "The backward pass would normally need the saved $N \\times N$ probabilities. FlashAttention instead stores only $O$ and the per-row logsumexp, then <strong>recomputes</strong> the score and probability tiles on the fly from $Q, K, V$. That trades extra matmul FLOPs for memory — a good deal because attention is memory-bound, so the recompute is hidden behind the IO it saves."
+          "p": "The backward pass would normally need the saved \\(N \\times N\\) probabilities. FlashAttention instead stores only \\(O\\) and the per-row logsumexp, then <strong>recomputes</strong> the score and probability tiles on the fly from \\(Q, K, V\\). That trades extra matmul FLOPs for memory — a good deal because attention is memory-bound, so the recompute is hidden behind the IO it saves."
         },
         {
           "callout": "FlashAttention is both <strong>faster and more memory-efficient</strong> precisely because it is <em>IO-aware</em>: it does <em>more</em> FLOPs (recomputation) yet fewer HBM accesses, and HBM is the bottleneck. FlashAttention-2 (2023) rebalanced the work partitioning for ~2× more throughput (50–73% of A100 fp16 peak); FlashAttention-3 (2024) exploits Hopper async + FP8. This kernel is what makes long-context training/inference (Llama, etc.) practical.",
@@ -369,8 +368,8 @@ registerLecture({
     "Kernel fusion changes no FLOPs but keeps intermediates in registers/SRAM, paying one HBM read + one write instead of a round-trip per op.",
     "Always benchmark with warmup + <code>torch.cuda.synchronize()</code> (CUDA is async), then profile to see which CUDA kernels actually run.",
     "Triton works at the <strong>block</strong> level: you pick grid/BLOCK/masks and call <code>tl.load</code>/<code>tl.store</code>; it automates coalescing, shared memory, and intra-SM scheduling — only cross-SM scheduling stays manual.",
-    "Online softmax keeps a running (max, denominator) and rescales by $e^{m-m'}$ — a one-pass, numerically stable reduction that lets you tile the row.",
-    "FlashAttention = tiling + online softmax: never materialize the $N \\times N$ scores ⇒ O(N) memory; recompute in the backward pass ⇒ IO-aware and faster despite extra FLOPs.",
+    "Online softmax keeps a running (max, denominator) and rescales by \\(e^{m-m'}\\) — a one-pass, numerically stable reduction that lets you tile the row.",
+    "FlashAttention = tiling + online softmax: never materialize the \\(N \\times N\\) scores ⇒ O(N) memory; recompute in the backward pass ⇒ IO-aware and faster despite extra FLOPs.",
     "torch.compile increasingly codegens Triton automatically — write kernels by hand for the fusions it misses."
   ],
   "references": [
@@ -554,7 +553,7 @@ registerLecture({
     {
       "id": 12,
       "section": "Tiling",
-      "q": "In tiled matrix multiply, staging blocks of $A$ and $B$ in shared memory helps because:",
+      "q": "In tiled matrix multiply, staging blocks of \\(A\\) and \\(B\\) in shared memory helps because:",
       "options": [
         "it reduces the number of multiply-adds",
         "shared memory is larger than DRAM",
@@ -567,12 +566,12 @@ registerLecture({
     {
       "id": 13,
       "section": "Online softmax",
-      "q": "Streaming (online) softmax tracks a running max $m$ and denominator $d$. When a new value pushes the max to $m'$, you must:",
+      "q": "Streaming (online) softmax tracks a running max \\(m\\) and denominator \\(d\\). When a new value pushes the max to $m'$, you must:",
       "options": [
-        "rescale the old denominator by $e^{m-m'}$ before adding the new $e^{x-m'}$ term",
-        "reset $d$ to 0 and start over",
-        "multiply $d$ by the new value $x$",
-        "leave $d$ unchanged"
+        "rescale the old denominator by \\(e^{m-m'}\\) before adding the new \\(e^{x-m'}\\) term",
+        "reset \\(d\\) to 0 and start over",
+        "multiply \\(d\\) by the new value \\(x\\)",
+        "leave \\(d\\) unchanged"
       ],
       "answer": 0,
       "explain": "Earlier terms were exponentiated against the old max; shifting the reference to m' requires multiplying the accumulator by e^{m-m'} so every term shares one baseline."
@@ -583,7 +582,7 @@ registerLecture({
       "q": "Why subtract the row max before exponentiating in softmax (and its online form)?",
       "options": [
         "It sharpens the softmax distribution",
-        "Numerical stability: large logits overflow $e^{x}$; subtracting the max keeps every exponent $\\le 0$",
+        "Numerical stability: large logits overflow \\(e^{x}\\); subtracting the max keeps every exponent \\(\\le 0\\)",
         "It halves the memory footprint",
         "It is what makes softmax differentiable"
       ],
@@ -596,8 +595,8 @@ registerLecture({
       "q": "What is FlashAttention's central idea?",
       "options": [
         "Approximate attention with a low-rank factorization of the scores",
-        "Keep the full $N \\times N$ attention matrix resident in SRAM",
-        "Tile $Q,K,V$ and fold an online softmax into the loop so the $N \\times N$ score matrix is never written to HBM — giving O(N) memory",
+        "Keep the full \\(N \\times N\\) attention matrix resident in SRAM",
+        "Tile \\(Q,K,V\\) and fold an online softmax into the loop so the \\(N \\times N\\) score matrix is never written to HBM — giving O(N) memory",
         "Replace softmax with ReLU to avoid exponentials"
       ],
       "answer": 2,
@@ -606,12 +605,12 @@ registerLecture({
     {
       "id": 16,
       "section": "FlashAttention",
-      "q": "How does FlashAttention's backward pass avoid storing the forward $N \\times N$ attention matrix?",
+      "q": "How does FlashAttention's backward pass avoid storing the forward \\(N \\times N\\) attention matrix?",
       "options": [
         "It approximates gradients with finite differences",
         "It caches the full matrix in DRAM after all",
         "It cannot compute gradients, so attention is frozen",
-        "It recomputes the score/probability tiles on the fly from stored $Q,K,V$ and the per-row $(m,\\ell)$ stats, trading FLOPs for memory and HBM traffic"
+        "It recomputes the score/probability tiles on the fly from stored \\(Q,K,V\\) and the per-row \\((m,\\ell)\\) stats, trading FLOPs for memory and HBM traffic"
       ],
       "answer": 3,
       "explain": "Recomputation is cheap because attention is memory-bound: the extra matmuls cost less wall-clock than the HBM IO they save, so FlashAttention is both faster and far more memory-efficient."

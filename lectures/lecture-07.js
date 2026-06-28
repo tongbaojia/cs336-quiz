@@ -1,5 +1,4 @@
-/* CS336 Companion lecture data. Auto-formatted; quiz answer positions
-   round-robin-balanced across A/B/C/D. Edit content here; keep it pure data. */
+/* CS336 Companion lecture data (math: \(..\)/\[..\]; $ is literal). */
 registerLecture({
   "id": 7,
   "estMinutes": 20,
@@ -58,7 +57,7 @@ registerLecture({
       "title": "Collective communication & its cost",
       "blocks": [
         {
-          "p": "<strong>Collective operations</strong> are the 1980s-vintage primitives of parallel programming: you declare a communication <em>pattern</em> over all devices instead of hand-rolling point-to-point sends. Two terms: <strong>world size</strong> (number of devices) and <strong>rank</strong> (a device's id, $0 \\ldots n-1$)."
+          "p": "<strong>Collective operations</strong> are the 1980s-vintage primitives of parallel programming: you declare a communication <em>pattern</em> over all devices instead of hand-rolling point-to-point sends. Two terms: <strong>world size</strong> (number of devices) and <strong>rank</strong> (a device's id, \\(0 \\ldots n-1\\))."
         },
         {
           "table": {
@@ -97,13 +96,13 @@ registerLecture({
           "h": "All-reduce = reduce-scatter + all-gather"
         },
         {
-          "p": "The key identity for cost accounting: an all-reduce decomposes into a reduce-scatter followed by an all-gather. The <strong>ring</strong> implementation makes each of those two phases move $\\frac{n-1}{n}$ of the message past each GPU, so total bytes crossing any link per GPU is:"
+          "p": "The key identity for cost accounting: an all-reduce decomposes into a reduce-scatter followed by an all-gather. The <strong>ring</strong> implementation makes each of those two phases move \\(\\frac{n-1}{n}\\) of the message past each GPU, so total bytes crossing any link per GPU is:"
         },
         {
           "math": "\\text{bytes per GPU} \\;\\approx\\; \\frac{2(n-1)}{n}\\,\\cdot\\,(\\text{message bytes}) \\;\\xrightarrow{\\;n\\,\\text{large}\\;}\\; 2 \\times \\text{message bytes}"
         },
         {
-          "callout": "In the <strong>bandwidth-limited regime this is optimal</strong> &mdash; you cannot all-reduce in fewer bytes. That is why every later cost is quoted in units of &ldquo;$2\\times$ #params&rdquo;: one all-reduce of the gradients. Latency (the $\\frac{n-1}{n}$ hop count) is a separate, small-message concern.",
+          "callout": "In the <strong>bandwidth-limited regime this is optimal</strong> &mdash; you cannot all-reduce in fewer bytes. That is why every later cost is quoted in units of &ldquo;\\(2\\times\\) #params&rdquo;: one all-reduce of the gradients. Latency (the \\(\\frac{n-1}{n}\\) hop count) is a separate, small-message concern.",
           "kind": "insight"
         },
         {
@@ -117,18 +116,18 @@ registerLecture({
       "title": "Data parallelism (and its memory tax)",
       "blocks": [
         {
-          "p": "Start with plain SGD on a batch of size $B$, then split the batch across $M$ machines and synchronize gradients each step:"
+          "p": "Start with plain SGD on a batch of size \\(B\\), then split the batch across \\(M\\) machines and synchronize gradients each step:"
         },
         {
           "math": "\\theta_{t+1} \\;=\\; \\theta_t \\;-\\; \\eta \\sum_{i=1}^{B} \\nabla f(x_i)"
         },
         {
-          "p": "Each GPU runs forward/backward on $B/M$ local examples, then an <strong>all-reduce</strong> averages the gradients so every replica steps identically."
+          "p": "Each GPU runs forward/backward on \\(B/M\\) local examples, then an <strong>all-reduce</strong> averages the gradients so every replica steps identically."
         },
         {
           "list": [
-            "<strong>Compute</strong>: scales &mdash; each GPU does $B/M$ examples' worth of work.",
-            "<strong>Communication</strong>: $\\approx 2\\times$ #params per step (one gradient all-reduce), independent of batch size &mdash; cheap if batches are large.",
+            "<strong>Compute</strong>: scales &mdash; each GPU does \\(B/M\\) examples' worth of work.",
+            "<strong>Communication</strong>: \\(\\approx 2\\times\\) #params per step (one gradient all-reduce), independent of batch size &mdash; cheap if batches are large.",
             "<strong>Memory</strong>: <em>no</em> scaling &mdash; every GPU still stores the full model, gradients, and optimizer state."
           ]
         },
@@ -143,8 +142,8 @@ registerLecture({
             "2 bytes &mdash; BF16 parameters",
             "2 bytes &mdash; BF16 gradients",
             "4 bytes &mdash; FP32 master weights",
-            "4 bytes &mdash; FP32 Adam first moment ($m$)",
-            "4 bytes &mdash; FP32 Adam second moment ($v$)"
+            "4 bytes &mdash; FP32 Adam first moment (\\(m\\))",
+            "4 bytes &mdash; FP32 Adam second moment (\\(v\\))"
           ],
           "ordered": false
         },
@@ -192,7 +191,7 @@ registerLecture({
           }
         },
         {
-          "callout": "ZeRO-1 is essentially <strong>free</strong>: same $2\\times$ #params traffic as plain DDP, but optimizer memory drops by a factor of $N$. There is almost never a reason <em>not</em> to turn it on. ZeRO-2 is nearly free too.",
+          "callout": "ZeRO-1 is essentially <strong>free</strong>: same \\(2\\times\\) #params traffic as plain DDP, but optimizer memory drops by a factor of \\(N\\). There is almost never a reason <em>not</em> to turn it on. ZeRO-2 is nearly free too.",
           "kind": "insight"
         },
         {
@@ -228,7 +227,7 @@ registerLecture({
           }
         },
         {
-          "callout": "ZeRO-3 costs $3\\times$ #params (1.5&times; DDP) and &mdash; crucially &mdash; <strong>does not reduce activation memory</strong>, only parameter/optimizer memory. It can also become latency-bound from many small all-gathers. Sharding state is not the same as sharding the <em>model</em>.",
+          "callout": "ZeRO-3 costs \\(3\\times\\) #params (1.5&times; DDP) and &mdash; crucially &mdash; <strong>does not reduce activation memory</strong>, only parameter/optimizer memory. It can also become latency-bound from many small all-gathers. Sharding state is not the same as sharding the <em>model</em>.",
           "kind": "pitfall"
         }
       ]
@@ -244,30 +243,30 @@ registerLecture({
           "h": "Pipeline parallel (depth, GPipe)"
         },
         {
-          "p": "Assign contiguous layers to each GPU. Naively, a GPU is busy only $1/n$ of the time &mdash; the rest is the &ldquo;<strong>bubble</strong>&rdquo; waiting on neighbors. Split the batch into $n_{\\text{micro}}$ microbatches and stream them so stages overlap. The wasted fraction is:"
+          "p": "Assign contiguous layers to each GPU. Naively, a GPU is busy only \\(1/n\\) of the time &mdash; the rest is the &ldquo;<strong>bubble</strong>&rdquo; waiting on neighbors. Split the batch into \\(n_{\\text{micro}}\\) microbatches and stream them so stages overlap. The wasted fraction is:"
         },
         {
           "math": "\\text{bubble fraction} \\;=\\; \\frac{n_{\\text{stages}} - 1}{n_{\\text{micro}}}"
         },
         {
-          "callout": "Pipeline's payoff: communication is <strong>point-to-point</strong> and depends only on activation size ($b\\,s\\,h$), not params &mdash; cheap enough to run <em>across nodes</em>. Its cost: you need a large batch (many microbatches) to shrink the bubble, so it degrades badly at small batch size.",
+          "callout": "Pipeline's payoff: communication is <strong>point-to-point</strong> and depends only on activation size (\\(b\\,s\\,h\\)), not params &mdash; cheap enough to run <em>across nodes</em>. Its cost: you need a large batch (many microbatches) to shrink the bubble, so it degrades badly at small batch size.",
           "kind": "key"
         },
         {
           "h": "Tensor parallel (width, Megatron)"
         },
         {
-          "p": "Decompose a single matmul into column/row submatrices on different GPUs and add the partial sums. In a Megatron block, the forward pass has $f =$ identity and $g =$ <strong>all-reduce</strong>; in the backward pass they swap ($f =$ all-reduce, $g =$ identity). That is one all-reduce per block of attention and per block of MLP."
+          "p": "Decompose a single matmul into column/row submatrices on different GPUs and add the partial sums. In a Megatron block, the forward pass has \\(f =\\) identity and \\(g =\\) <strong>all-reduce</strong>; in the backward pass they swap (\\(f =\\) all-reduce, \\(g =\\) identity). That is one all-reduce per block of attention and per block of MLP."
         },
         {
-          "callout": "Tensor parallel issues a large all-reduce ($\\sim\\!8\\,b\\,s\\,h$ per layer) on the <em>critical path</em>, so it only pays off over NVLink: keep it <strong>within a node ($\\le 8$ GPUs)</strong>. Cross-node tensor parallel drowns in communication. Upside: no bubble, no large-batch requirement, easy to wrap.",
+          "callout": "Tensor parallel issues a large all-reduce (\\(\\sim\\!8\\,b\\,s\\,h\\) per layer) on the <em>critical path</em>, so it only pays off over NVLink: keep it <strong>within a node (\\(\\le 8\\) GPUs)</strong>. Cross-node tensor parallel drowns in communication. Upside: no bubble, no large-batch requirement, easy to wrap.",
           "kind": "pitfall"
         },
         {
           "h": "Sequence parallel (the activation leftovers)"
         },
         {
-          "p": "Tensor parallel shards the matmuls but leaves ~$10\\,b\\,s\\,h$ of LayerNorm/Dropout/IO activations replicated. Those ops are <em>pointwise over the sequence</em>, so shard them along the sequence axis too ($g =$ all-gather, $\\bar g =$ reduce-scatter; reversed in backward). Combined, this finally makes activation memory scale linearly with device count."
+          "p": "Tensor parallel shards the matmuls but leaves ~\\(10\\,b\\,s\\,h\\) of LayerNorm/Dropout/IO activations replicated. Those ops are <em>pointwise over the sequence</em>, so shard them along the sequence axis too (\\(g =\\) all-gather, \\(\\bar g =\\) reduce-scatter; reversed in backward). Combined, this finally makes activation memory scale linearly with device count."
         }
       ]
     },
@@ -327,7 +326,7 @@ registerLecture({
           "ordered": true
         },
         {
-          "callout": "$\\text{TP}=8$ (exactly one node) is usually optimal; e.g., 64 GPUs &rarr; an $8\\times 8$ tensor&times;pipeline grid. Done carefully, 3D parallelism keeps per-GPU utilization roughly <em>flat</em> as you add machines &mdash; the linear-scaling goal from Part 1.",
+          "callout": "\\(\\text{TP}=8\\) (exactly one node) is usually optimal; e.g., 64 GPUs &rarr; an \\(8\\times 8\\) tensor&times;pipeline grid. Done carefully, 3D parallelism keeps per-GPU utilization roughly <em>flat</em> as you add machines &mdash; the linear-scaling goal from Part 1.",
           "kind": "insight"
         },
         {
@@ -368,7 +367,7 @@ registerLecture({
   ],
   "takeaways": [
     "Multi-GPU training is a communication problem: every scheme trades recompute vs. store-locally vs. communicate, governed by the NVLink&ndash;vs&ndash;inter-node bandwidth cliff.",
-    "All-reduce = reduce-scatter + all-gather; a ring moves $\\approx 2(n-1)/n$ &times; bytes per GPU, optimal in the bandwidth-limited regime &mdash; hence costs quoted as &ldquo;2&times; #params&rdquo;.",
+    "All-reduce = reduce-scatter + all-gather; a ring moves \\(\\approx 2(n-1)/n\\) &times; bytes per GPU, optimal in the bandwidth-limited regime &mdash; hence costs quoted as &ldquo;2&times; #params&rdquo;.",
     "Naive data parallel costs 2&times; #params/step but replicates ~16 bytes/param everywhere &mdash; zero memory scaling.",
     "ZeRO-1/2 shard optimizer state/gradients essentially for free (still 2&times;); ZeRO-3 / FSDP shards params too at 3&times;, but does not touch activation memory.",
     "Pipeline cuts depth (cheap point-to-point, but needs big batch to hide the (p-1)/n_micro bubble); tensor cuts width (all-reduce per block &mdash; keep it on NVLink within a node).",
@@ -422,15 +421,15 @@ registerLecture({
     {
       "id": 2,
       "section": "Collectives",
-      "q": "For a ring all-reduce over $n$ GPUs, the bytes crossing each link per GPU scale as:",
+      "q": "For a ring all-reduce over \\(n\\) GPUs, the bytes crossing each link per GPU scale as:",
       "options": [
-        "$n \\times$ message bytes",
-        "$\\frac{2(n-1)}{n} \\times$ message bytes, approaching $2\\times$ for large $n$",
-        "$(n-1) \\times$ message bytes",
-        "$\\frac{1}{n} \\times$ message bytes"
+        "\\(n \\times\\) message bytes",
+        "\\(\\frac{2(n-1)}{n} \\times\\) message bytes, approaching \\(2\\times\\) for large \\(n\\)",
+        "\\((n-1) \\times\\) message bytes",
+        "\\(\\frac{1}{n} \\times\\) message bytes"
       ],
       "answer": 1,
-      "explain": "Reduce-scatter and all-gather each move $(n-1)/n$ of the message; together $2(n-1)/n \\to 2$ as $n$ grows."
+      "explain": "Reduce-scatter and all-gather each move \\((n-1)/n\\) of the message; together \\(2(n-1)/n \\to 2\\) as \\(n\\) grows."
     },
     {
       "id": 3,
@@ -495,7 +494,7 @@ registerLecture({
         "activations; 0.5&times; #params"
       ],
       "answer": 2,
-      "explain": "ZeRO-1 shards optimizer state with the same 2&times; traffic as DDP but $N\\times$ less optimizer memory &mdash; nearly always worth it."
+      "explain": "ZeRO-1 shards optimizer state with the same 2&times; traffic as DDP but \\(N\\times\\) less optimizer memory &mdash; nearly always worth it."
     },
     {
       "id": 8,
@@ -526,15 +525,15 @@ registerLecture({
     {
       "id": 10,
       "section": "Pipeline",
-      "q": "With $p$ pipeline stages and $m$ microbatches, the bubble (idle) fraction is:",
+      "q": "With \\(p\\) pipeline stages and \\(m\\) microbatches, the bubble (idle) fraction is:",
       "options": [
-        "$p/m$",
-        "$(p-1)/m$",
-        "$m/(p-1)$",
-        "$(p-1)/(p\\,m)$"
+        "\\(p/m\\)",
+        "\\((p-1)/m\\)",
+        "\\(m/(p-1)\\)",
+        "\\((p-1)/(p\\,m)\\)"
       ],
       "answer": 1,
-      "explain": "Fill+drain wastes $p-1$ slots out of $m$ microbatches; many microbatches shrink the bubble."
+      "explain": "Fill+drain wastes \\(p-1\\) slots out of \\(m\\) microbatches; many microbatches shrink the bubble."
     },
     {
       "id": 11,
@@ -543,7 +542,7 @@ registerLecture({
       "options": [
         "it requires no batching",
         "it has exactly zero bubble",
-        "its communication is point-to-point and only activation-sized ($b\\,s\\,h$), so it tolerates low bandwidth",
+        "its communication is point-to-point and only activation-sized (\\(b\\,s\\,h\\)), so it tolerates low bandwidth",
         "it removes optimizer state"
       ],
       "answer": 2,
@@ -552,15 +551,15 @@ registerLecture({
     {
       "id": 12,
       "section": "Tensor",
-      "q": "In a Megatron tensor-parallel block, the forward-pass operator $g$ is:",
+      "q": "In a Megatron tensor-parallel block, the forward-pass operator \\(g\\) is:",
       "options": [
         "the identity",
         "a broadcast",
         "a reduce-scatter",
-        "an all-reduce (and in the backward pass $f$ is the all-reduce, $g$ the identity)"
+        "an all-reduce (and in the backward pass \\(f\\) is the all-reduce, \\(g\\) the identity)"
       ],
       "answer": 3,
-      "explain": "Forward: $f$=identity, $g$=all-reduce to sum partial outputs; backward swaps them."
+      "explain": "Forward: \\(f\\)=identity, \\(g\\)=all-reduce to sum partial outputs; backward swaps them."
     },
     {
       "id": 13,

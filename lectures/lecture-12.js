@@ -1,5 +1,4 @@
-/* CS336 Companion lecture data. Auto-formatted; quiz answer positions
-   round-robin-balanced across A/B/C/D. Edit content here; keep it pure data. */
+/* CS336 Companion lecture data (math: \(..\)/\[..\]; $ is literal). */
 registerLecture({
   "id": 12,
   "estMinutes": 20,
@@ -61,23 +60,23 @@ registerLecture({
       "title": "Perplexity: the textbook LM metric",
       "blocks": [
         {
-          "p": "A language model is just a distribution $p(x)$ over token sequences. The textbook intrinsic metric is <strong>perplexity</strong>: the inverse geometric-mean probability the model assigns to a held-out dataset $D$ — equivalently, the exponentiated average per-token negative log-likelihood."
+          "p": "A language model is just a distribution \\(p(x)\\) over token sequences. The textbook intrinsic metric is <strong>perplexity</strong>: the inverse geometric-mean probability the model assigns to a held-out dataset \\(D\\) — equivalently, the exponentiated average per-token negative log-likelihood."
         },
         {
           "math": "\\text{PPL}(D) = \\left(\\prod_{i=1}^{|D|} \\frac{1}{p(x_i \\mid x_{1:i-1})}\\right)^{1/|D|} = \\exp\\!\\left(-\\frac{1}{|D|}\\sum_{i=1}^{|D|} \\log p(x_i \\mid x_{1:i-1})\\right)"
         },
         {
-          "p": "It is the effective branching factor: PPL $=k$ means the model is as uncertain as a uniform choice over $k$ tokens. Pretraining minimizes it on the train split; you report it on a held-out test split. Classic corpora: Penn Treebank, WikiText-103, the One Billion Word Benchmark. GPT-2 reported these <em>zero-shot</em> (trained on WebText, evaluated out-of-distribution) and still beat in-domain models on the smaller sets — transfer helps most when the test set is small."
+          "p": "It is the effective branching factor: PPL \\(=k\\) means the model is as uncertain as a uniform choice over \\(k\\) tokens. Pretraining minimizes it on the train split; you report it on a held-out test split. Classic corpora: Penn Treebank, WikiText-103, the One Billion Word Benchmark. GPT-2 reported these <em>zero-shot</em> (trained on WebText, evaluated out-of-distribution) and still beat in-domain models on the smaller sets — transfer helps most when the test set is small."
         },
         {
-          "callout": "The maximalist view: if your model $p$ matched the true distribution $t$, perplexity would hit its floor at the entropy of language $H(t)$ (attained iff $p=t$), and a model that <em>is</em> $t$ can solve every task. So relentlessly pushing perplexity down is a path to general capability. The caveat is efficiency — much of the probability mass sits on tokens irrelevant to any task you care about, so per-token likelihood is a blunt capability target.",
+          "callout": "The maximalist view: if your model \\(p\\) matched the true distribution \\(t\\), perplexity would hit its floor at the entropy of language \\(H(t)\\) (attained iff \\(p=t\\)), and a model that <em>is</em> \\(t\\) can solve every task. So relentlessly pushing perplexity down is a path to general capability. The caveat is efficiency — much of the probability mass sits on tokens irrelevant to any task you care about, so per-token likelihood is a blunt capability target.",
           "kind": "key"
         },
         {
           "h": "Why cross-model perplexity comparisons are fraught"
         },
         {
-          "p": "Perplexity is <em>per token</em>, and a token is not a fixed unit. A model with a coarser tokenizer segments the same text into fewer, higher-information tokens: its per-token NLL is larger but $|D|$ is smaller. Two models with different vocabularies therefore report perplexities in incomparable units — a bigger vocab can flatter the number without the model being better. The fix is to normalize by a tokenizer-independent denominator, raw UTF-8 <strong>bytes</strong> (or characters):"
+          "p": "Perplexity is <em>per token</em>, and a token is not a fixed unit. A model with a coarser tokenizer segments the same text into fewer, higher-information tokens: its per-token NLL is larger but \\(|D|\\) is smaller. Two models with different vocabularies therefore report perplexities in incomparable units — a bigger vocab can flatter the number without the model being better. The fix is to normalize by a tokenizer-independent denominator, raw UTF-8 <strong>bytes</strong> (or characters):"
         },
         {
           "math": "\\text{bits-per-byte} = \\frac{1}{n_{\\text{bytes}}}\\sum_{i=1}^{|D|} \\bigl(-\\log_2 p(x_i \\mid x_{1:i-1})\\bigr)"
@@ -109,7 +108,7 @@ registerLecture({
           ]
         },
         {
-          "p": "Answer-text scoring has a length problem: longer answers have lower joint probability, so raw likelihood is biased toward short options. Normalizations: per-token, per-byte (HellaSwag's <code>acc_norm</code>), or <em>unconditional</em> PMI normalization (GPT-3) — divide the conditional likelihood $p(a \\mid q)$ by the answer's probability under a neutral context $p(a \\mid \\text{ctx}_0)$ to cancel raw surface frequency."
+          "p": "Answer-text scoring has a length problem: longer answers have lower joint probability, so raw likelihood is biased toward short options. Normalizations: per-token, per-byte (HellaSwag's <code>acc_norm</code>), or <em>unconditional</em> PMI normalization (GPT-3) — divide the conditional likelihood \\(p(a \\mid q)\\) by the answer's probability under a neutral context \\(p(a \\mid \\text{ctx}_0)\\) to cancel raw surface frequency."
         },
         {
           "code": "def score_choice(model, q, answer):\n    # joint log-prob of the answer tokens given the question/prompt\n    lp = logprob(model, prompt=q, cont=answer)   # sum_t log p(a_t | q, a_<t)\n    return {\n        'raw':        lp,                              # biased toward short answers\n        'token_norm': lp / n_tokens(answer),           # per-token\n        'byte_norm':  lp / n_bytes(answer),            # HellaSwag acc_norm, tokenizer-agnostic\n        'pmi':        lp - logprob(model, 'Answer:', answer),  # GPT-3 unconditional norm\n    }\n\npred = max(choices, key=lambda c: score_choice(model, q, c)['byte_norm'])",
@@ -314,7 +313,7 @@ registerLecture({
           ]
         },
         {
-          "p": "Finally: what are you even evaluating — the model or the method? <strong>Test-time compute</strong> changes the answer. Chain-of-thought prompting, <strong>self-consistency</strong> (sample $N$ reasoning paths, majority-vote the answer), and best-of-$N$ all trade inference FLOPs for accuracy. <strong>System</strong> evals (RAG, SWE-bench agents) score model + scaffolding together."
+          "p": "Finally: what are you even evaluating — the model or the method? <strong>Test-time compute</strong> changes the answer. Chain-of-thought prompting, <strong>self-consistency</strong> (sample \\(N\\) reasoning paths, majority-vote the answer), and best-of-\\(N\\) all trade inference FLOPs for accuracy. <strong>System</strong> evals (RAG, SWE-bench agents) score model + scaffolding together."
         },
         {
           "code": "from collections import Counter\n\n# self-consistency: sample N chains-of-thought, then majority-vote the answer\ndef self_consistency(model, prompt, n=40, temperature=0.7):\n    answers = []\n    for _ in range(n):\n        cot = model.sample(prompt, temperature=temperature)\n        answers.append(extract_final_answer(cot))\n    return Counter(answers).most_common(1)[0][0]   # trades inference FLOPs for accuracy",
@@ -400,12 +399,12 @@ registerLecture({
     {
       "id": 3,
       "section": "Perplexity",
-      "q": "Perplexity on a held-out set $D$ equals:",
+      "q": "Perplexity on a held-out set \\(D\\) equals:",
       "options": [
         "The average cross-entropy already expressed in bits per byte",
         "The KL divergence between the model and the true distribution",
-        "The exponentiated average per-token negative log-likelihood, $\\exp(-\\tfrac{1}{|D|}\\sum_i \\log p(x_i\\mid x_{1:i-1}))$",
-        "The fraction of tokens predicted with $p>0.5$"
+        "The exponentiated average per-token negative log-likelihood, \\(\\exp(-\\tfrac{1}{|D|}\\sum_i \\log p(x_i\\mid x_{1:i-1}))\\)",
+        "The fraction of tokens predicted with \\(p>0.5\\)"
       ],
       "answer": 2,
       "explain": "Perplexity is the inverse geometric-mean probability = exp of the mean per-token NLL = effective branching factor."
@@ -417,18 +416,18 @@ registerLecture({
       "options": [
         "Zero, for a sufficiently large model",
         "One, since probabilities are normalized",
-        "The vocabulary size $V$",
-        "The entropy $H(t)$ of the true distribution, attained only when $p=t$"
+        "The vocabulary size \\(V\\)",
+        "The entropy \\(H(t)\\) of the true distribution, attained only when \\(p=t\\)"
       ],
       "answer": 3,
-      "explain": "Perplexity bottoms out at the entropy of language (attained iff $p=t$); a model equal to $t$ could solve any task. Caveat: most mass is on task-irrelevant tokens, so it's a blunt target."
+      "explain": "Perplexity bottoms out at the entropy of language (attained iff \\(p=t\\)); a model equal to \\(t\\) could solve any task. Caveat: most mass is on task-irrelevant tokens, so it's a blunt target."
     },
     {
       "id": 5,
       "section": "Perplexity",
       "q": "Comparing raw perplexity across two models with different tokenizers is unreliable because:",
       "options": [
-        "Perplexity is per-token, and a coarser tokenizer changes both the per-token NLL and $|D|$, so the unit differs",
+        "Perplexity is per-token, and a coarser tokenizer changes both the per-token NLL and \\(|D|\\), so the unit differs",
         "Perplexity is undefined for subword tokenizers",
         "Larger vocabularies always have lower entropy",
         "Perplexity ignores the test set entirely"
@@ -447,12 +446,12 @@ registerLecture({
         "Perplexity averaged over several tokenizers"
       ],
       "answer": 1,
-      "explain": "Because decoding is deterministic, $p(\\text{byte string})$ equals the product over the model's own segmentation; dividing by raw bytes makes it comparable (The Pile, Gopher)."
+      "explain": "Because decoding is deterministic, \\(p(\\text{byte string})\\) equals the product over the model's own segmentation; dividing by raw bytes makes it comparable (The Pile, Gopher)."
     },
     {
       "id": 7,
       "section": "Multiple-choice",
-      "q": "Scoring an MC item via $p(\\text{'A'})$ on the answer letter vs. via the likelihood of each full answer string can:",
+      "q": "Scoring an MC item via \\(p(\\text{'A'})\\) on the answer letter vs. via the likelihood of each full answer string can:",
       "options": [
         "Always agree by construction",
         "Only differ for non-English benchmarks",
